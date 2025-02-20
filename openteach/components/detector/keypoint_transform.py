@@ -73,34 +73,31 @@ class TransformHandPositionCoords(Component):
 
     def stream(self):
         while True:
-            try:
-                self.timer.start_loop()
-                data_type, hand_coords = self._get_hand_coords()
+            self.timer.start_loop()
+            data_type, hand_coords = self._get_hand_coords()
 
-               
-                # Shift the points to required axes
-                transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(hand_coords)
+            
+            # Shift the points to required axes
+            transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(hand_coords)
 
-                # Passing the transformed coords into a moving average
-                self.averaged_hand_coords = moving_average(
-                    transformed_hand_coords, 
-                    self.coord_moving_average_queue, 
-                    self.moving_average_limit
-                )
+            # Passing the transformed coords into a moving average
+            self.averaged_hand_coords = moving_average(
+                transformed_hand_coords, 
+                self.coord_moving_average_queue, 
+                self.moving_average_limit
+            )
 
-                self.averaged_hand_frame = moving_average(
-                    translated_hand_coord_frame, 
-                    self.frame_moving_average_queue, 
-                    self.moving_average_limit
-                )
+            self.averaged_hand_frame = moving_average(
+                translated_hand_coord_frame, 
+                self.frame_moving_average_queue, 
+                self.moving_average_limit
+            )
 
-                self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_coords, 'transformed_hand_coords')
-                if data_type == 'absolute':
-                    self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_frame, 'transformed_hand_frame')
+            self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_coords, 'transformed_hand_coords')
+            if data_type == 'absolute':
+                self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_frame, 'transformed_hand_frame')
 
-                self.timer.end_loop()
-            except:
-                break
+            self.timer.end_loop()
         
         self.original_keypoint_subscriber.stop()
         self.transformed_keypoint_publisher.stop()
