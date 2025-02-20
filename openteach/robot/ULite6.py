@@ -27,7 +27,7 @@ class ULite6Arm(RobotWrapper):
 
     @property
     def name(self):
-        return "right_xarm"
+        return "Ufactory Lite6 arm"
 
     @property
     def data_frequency(self):
@@ -76,7 +76,7 @@ class ULite6Arm(RobotWrapper):
         self._controller.move_arm_cartesian(cartesian_coords, duration=duration)
 
     def arm_control(self, cartesian_coords):
-        print("Moving the arm in cartesian coords! to: {}".format(cartesian_coords))
+        # print("Moving the arm in cartesian coords! to: {}".format(cartesian_coords))
         self._controller.arm_control(cartesian_coords)
 
     def move_velocity(self, input_velocity_values, duration):

@@ -1,47 +1,94 @@
-from asyncio import threads
 from copy import deepcopy as copy
 
-import matplotlib.pyplot as plt
 import numpy as np
 import zmq
-from mpl_toolkits.mplot3d import Axes3D
+from numba import njit
 from numpy.linalg import pinv
-from scipy.spatial.transform import Rotation, Slerp
 from scipy.spatial.transform import Rotation as R
-from tqdm import tqdm
+from scipy.spatial.transform import Slerp
 
-from openteach.constants import *
-
-# from openteach.robot.franka import FrankaArm
+from openteach.constants import ARM_TELEOP_CONT, ARM_TELEOP_STOP, OCULUS_JOINTS, ULITE6
 from openteach.robot.ULite6 import ULite6Arm
-from openteach.utils.files import *
 from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
 from openteach.utils.timer import FrequencyTimer
-from openteach.utils.vectorops import *
 
 from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 
 
+@njit(cache=True, nogil=True)
+def turn_frame_to_homo_mat(frame):
+    t = frame[0]
+    R = frame[1:]
+
+    homo_mat = np.zeros((4, 4))
+    homo_mat[:3, :3] = np.transpose(R)
+    homo_mat[:3, 3] = t
+    homo_mat[3, 3] = 1
+
+    return homo_mat
+
+
+@njit(cache=True, nogil=True)
+def transformation_cal(H_HI_HH, H_HT_HH, H_RI_RH):
+    H_HT_HI = pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
+
+    # 分别定义旋转和平移的变换矩阵
+    H_R_V = np.array(
+        [
+            [0, -1, 0, 0],  # 旋转变换矩阵，保持原方向
+            [0, 0, -1, 0],
+            [1, 0, 0, 0],
+            [0, 0, 0, 1],
+        ],
+        dtype=np.float32,
+    )
+
+    H_T_V = np.array(
+        [  # 平移变换矩阵，保持原方向
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [1, 0, 0, 0],
+            [0, 0, 0, 1],
+        ],
+        dtype=np.float32,
+    )
+
+    # 分别应用旋转和平移变换
+    H_HT_HI_r = (pinv(H_R_V) @ H_HT_HI @ H_R_V)[:3, :3]
+    H_HT_HI_t = (pinv(H_T_V) @ H_HT_HI @ H_T_V)[:3, 3]
+
+    # target_rotation = H_RI_RH[:3, :3] @ H_HT_HI_r
+    # target_translation = H_RI_RH[:3, 3] + H_HT_HI_t
+
+    H_RT_RH = np.zeros((4, 4), dtype=np.float32)
+    H_RT_RH[:3, :3] = H_RI_RH[:3, :3] @ H_HT_HI_r  # target_rotation
+    H_RT_RH[:3, 3] = H_RI_RH[:3, 3] + H_HT_HI_t  # target_translation
+    H_RT_RH[3, 3] = 1.0
+
+    return H_RT_RH
+
+
 # Filter for removing noise in the teleoperation
 class Filter:
     def __init__(self, state, comp_ratio=0.6):
-        self.pos_state = state[:3]
-        self.ori_state = state[3:7]
+        # print("Filter init:", state)
+        self.pos_state = state[:3] * 1000
+        self.ori_state = state[3:6]
         self.comp_ratio = comp_ratio
 
     def __call__(self, next_state):
-        self.pos_state = self.pos_state[:3] * self.comp_ratio + next_state[:3] * (1 - self.comp_ratio)
+        self.pos_state = self.pos_state * self.comp_ratio + next_state[:3] * (1 - self.comp_ratio)
         ori_interp = Slerp(
             [0, 1],
-            Rotation.from_rotvec(np.stack([self.ori_state, next_state[3:6]], axis=0)),
+            R.from_rotvec(np.stack([self.ori_state, next_state[3:6]], axis=0)),
         )
         self.ori_state = ori_interp([1 - self.comp_ratio])[0].as_rotvec()
         return np.concatenate([self.pos_state, self.ori_state])
 
 
-# Bimanual right arm operator class
+# Ufactory Lite6 arm operator class
 class ULite6ArmOperator(Operator):
     def __init__(
         self,
@@ -54,7 +101,7 @@ class ULite6ArmOperator(Operator):
         joint_publisher_port=None,
         cartesian_command_publisher_port=None,
     ):
-        self.notify_component_start("Bimanual arm operator")
+        self.notify_component_start("Ufactory Lite6 arm operator")
         # Transformed Arm Keypoint Subscriber
         self._transformed_arm_keypoint_subscriber = ZMQKeypointSubscriber(
             host=host, port=transformed_keypoints_port, topic="transformed_hand_frame"
@@ -74,13 +121,13 @@ class ULite6ArmOperator(Operator):
         # Arm Resolution Subscriber
         self._arm_resolution_subscriber = ZMQKeypointSubscriber(host=host, port=arm_resolution_port, topic="button")
         # Define Robot object
-        self._robot = ULite6Arm(ip=RIGHT_ARM_IP)
+        self._robot = ULite6Arm(ip=ULITE6.IP)
         self.robot.reset()
 
         # Get the initial pose of the robot
         home_pose = np.array(self.robot.get_cartesian_position())
         self.robot_init_H = self.robot_pose_aa_to_affine(home_pose)
-        self._timer = FrequencyTimer(BIMANUAL_VR_FREQ)
+        self._timer = FrequencyTimer(ULITE6.VR_FREQ)
 
         # Use the filter
         self.use_filter = use_filter
@@ -126,7 +173,7 @@ class ULite6ArmOperator(Operator):
         """
 
         rotation = R.from_rotvec(pose_aa[3:]).as_matrix()
-        translation = np.array(pose_aa[:3]) / SCALE_FACTOR
+        translation = np.array(pose_aa[:3]) / ULITE6.SCALE_FACTOR
 
         return np.block([[rotation, translation[:, np.newaxis]], [0, 0, 0, 1]])
 
@@ -174,16 +221,15 @@ class ULite6ArmOperator(Operator):
     def _homo2cart(self, homo_mat):
         # Here we will use the resolution scale to set the translation resolution
         t = homo_mat[:3, 3]
-        R = Rotation.from_matrix(homo_mat[:3, :3]).as_rotvec(degrees=False)
+        Rotvec = R.from_matrix(homo_mat[:3, :3]).as_rotvec(degrees=False)
 
-        cart = np.concatenate([t, R], axis=0)
+        cart = np.concatenate([t, Rotvec], axis=0)
         return cart
 
     # Get the scaled cartesian pose
     def _get_scaled_cart_pose(self, moving_robot_homo_mat):
         # Get the cart pose without the scaling
         unscaled_cart_pose = self._homo2cart(moving_robot_homo_mat)
-        print("Unscaled cart pose:", unscaled_cart_pose)
         # unscaled_cart_pose[:3]=[u]
         # Get the current cart pose
         # home_pose = self.robot.get_cartesian_position()
@@ -205,12 +251,11 @@ class ULite6ArmOperator(Operator):
     def _reset_teleop(self):
         print("****** RESETTING TELEOP ****** ")
         home_pose = self.robot.get_cartesian_position()
-        home_pose_array = np.array(home_pose)  # Convert tuple to numpy array
-        self.robot_init_H = self.robot_pose_aa_to_affine(home_pose_array)
+        self.robot_init_H = self.robot_pose_aa_to_affine(np.array(home_pose))
         first_hand_frame = self._get_hand_frame()
         while first_hand_frame is None:
             first_hand_frame = self._get_hand_frame()
-        self.hand_init_H = self._turn_frame_to_homo_mat(first_hand_frame)
+        self.hand_init_H = turn_frame_to_homo_mat(first_hand_frame)
         self.hand_init_t = copy(self.hand_init_H[:3, 3])
         self.is_first_frame = False
         print("Resetting complete")
@@ -266,53 +311,48 @@ class ULite6ArmOperator(Operator):
     def _apply_retargeted_angles(self, log=False):
         # See if there is a reset in the teleop state
         new_arm_teleop_state, pause_status, pause_right = self._get_arm_teleop_state_from_hand_keypoints()
+        
         if self.is_first_frame or (
             self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
             moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
-        self.arm_teleop_state = new_arm_teleop_state
-        arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
 
-        if arm_teleoperation_scale_mode == ARM_HIGH_RESOLUTION:
-            self.resolution_scale = 1
-        elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
-            self.resolution_scale = 0.6
+        self.arm_teleop_state = new_arm_teleop_state
+
+        match self._get_resolution_scale_mode():
+            case ULITE6.ARM_HIGH_RESOLUTION:
+                self.resolution_scale = 1
+            case ULITE6.ARM_LOW_RESOLUTION:
+                self.resolution_scale = 0.6
 
         if moving_hand_frame is None:
             return  # It means we are not on the arm mode yet instead of blocking it is directly returning
-            
 
-        self.hand_moving_H = self._turn_frame_to_homo_mat(moving_hand_frame)
+        self.hand_moving_H = turn_frame_to_homo_mat(moving_hand_frame)
 
         # Transformation code
-        H_HI_HH = copy(
-            self.hand_init_H
-        )  # Homo matrix that takes P_HI to P_HH - Point in Inital Hand Frame to Point in Home Hand Frame
-        H_HT_HH = copy(self.hand_moving_H)  # Homo matrix that takes P_HT to P_HH
-        H_RI_RH = copy(self.robot_init_H)  # Homo matrix that takes P_RI to P_RH
+        # Homo matrix that takes P_HI to P_HH - Point in Inital Hand Frame to Point in Home Hand Frame
+        # H_HI_HH = self.hand_init_H
+        # Homo matrix that takes P_HT to P_HH
+        # H_HT_HH = self.hand_moving_H
+        # Homo matrix that takes P_RI to P_RH
+        # H_RI_RH = self.robot_init_H
+        # Use numba JIT to accelerate the transformation by 400% faster
+        # input should be H_HI_HH , H_HT_HH and H_RI_RH.
+        # result is H_RT_RH
 
-        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
+        self.robot_moving_H = transformation_cal(
+            self.hand_init_H.astype(np.float32),
+            self.hand_moving_H.astype(np.float32),
+            self.robot_init_H.astype(np.float32),
+        )
+        # print(f"Transformation time: {time.perf_counter() - start_time} seconds")
 
-        # Here there are two matrices because the rotation is asymmetric and we imagine we are holding the endeffector and moving the robot.
-        H_R_V = np.array([[0, 0, -1, 0], [0, -1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
-
-        # The translation is completely symmetric and mimics your hand movement and we imagine we are holding the endeffector and moving the robot.
-        H_T_V = np.array([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
-
-        H_HT_HI_r = (pinv(H_R_V) @ H_HT_HI @ H_R_V)[:3, :3]  # Finding th
-        H_HT_HI_t = (pinv(H_T_V) @ H_HT_HI @ H_T_V)[:3, 3]
-
-        relative_affine = np.block([[H_HT_HI_r, H_HT_HI_t.reshape(3, 1)], [0, 0, 0, 1]])
-        target_translation = H_RI_RH[:3, 3] + relative_affine[:3, 3]
-
-        target_rotation = H_RI_RH[:3, :3] @ relative_affine[:3, :3]
-        H_RT_RH = np.block([[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]])
-
-        self.robot_moving_H = copy(H_RT_RH)
         final_pose = self._get_scaled_cart_pose(self.robot_moving_H)
         final_pose[0:3] = final_pose[0:3] * 1000
+        # print("Final Pose original:", final_pose)
 
         # Apply the filter
         if self.use_filter:
@@ -331,5 +371,6 @@ class ULite6ArmOperator(Operator):
         self.joint_publisher.pub_keypoints(joint_position, "joint")
         self.cartesian_command_publisher.pub_keypoints(final_pose, "cartesian")
 
-        if self.arm_teleop_state == ARM_TELEOP_CONT and gripper_flag == False:
+        if self.arm_teleop_state == ARM_TELEOP_CONT and gripper_flag is False:
+            # print("Final Pose processed:", final_pose)
             self.robot.arm_control(final_pose)

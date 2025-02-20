@@ -1,14 +1,12 @@
 # import rospy
 import numpy as np
 import time
-from copy import deepcopy as copy
 from xarm import XArmAPI
 from enum import Enum
 import math
 
-from openteach.constants import SCALE_FACTOR
+from openteach.constants import SCALE_FACTOR, ULITE6
 from scipy.spatial.transform import Rotation as R
-from openteach.constants import ULITE6_HOME, ULITE6_HOME_JS
 
 
 class RobotControlMode(Enum):
@@ -40,9 +38,7 @@ class Robot(XArmAPI):
         self.clear()
         print("SLow reset working")
         self.set_mode_and_state(RobotControlMode.CARTESIAN_CONTROL, 0)
-        status = self.set_servo_angle(
-            angle=ULITE6_HOME_JS, wait=True, is_radian=True, speed=math.radians(50)
-        )
+        status = self.set_servo_angle(angle=ULITE6.HOME_JS, wait=True, is_radian=True, speed=math.radians(50))
         assert status == 0, "Failed to set robot at home initial position"
         self.set_mode_and_state(RobotControlMode.SERVO_CONTROL, 0)
         # self.set_gripper_position(800.0, wait=True)
@@ -112,28 +108,20 @@ class DexArmControl:
         pass
 
     def move_arm_joint(self, joint_angles):
-        self.robot.set_servo_angle(
-            joint_angles, wait=True, is_radian=True, mvacc=80, speed=10
-        )
+        self.robot.set_servo_angle(joint_angles, wait=True, is_radian=True, mvacc=10, speed=10)
 
     def move_arm_cartesian(self, cartesian_pos, duration=3):
-        self.robot.set_servo_cartesian_aa(
-            cartesian_pos, wait=False, relative=False, mvacc=200, speed=50
-        )
+        self.robot.set_servo_cartesian_aa(cartesian_pos, wait=False, relative=False, mvacc=10, speed=10)
 
     def arm_control(self, cartesian_pose):
         if self.robot.has_error:
             self.robot.clear()
             self.robot.set_mode_and_state(1)
-        self.robot.set_servo_cartesian_aa(
-            cartesian_pose, wait=False, relative=False, mvacc=200, speed=50
-        )
+        self.robot.set_servo_cartesian_aa(cartesian_pose, wait=False, relative=False, mvacc=5, speed=5)
 
     def get_arm_joint_state(self):
         joint_positions = np.array(self.robot.get_servo_angle()[1])
-        joint_state = dict(
-            position=np.array(joint_positions, dtype=np.float32), timestamp=time.time()
-        )
+        joint_state = dict(position=np.array(joint_positions, dtype=np.float32), timestamp=time.time())
         return joint_state
 
     def get_cartesian_state(self):
@@ -147,7 +135,7 @@ class DexArmControl:
         return cartesian_state
 
     def home_arm(self):
-        self.move_arm_cartesian(ULITE6_HOME, duration=5)
+        self.move_arm_cartesian(ULITE6.HOME, duration=5)
 
     def reset_arm(self):
         self.home_arm()
