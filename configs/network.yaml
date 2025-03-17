@@ -1,6 +1,11 @@
-host_address: '172.24.71.206'
+host_address: '0.0.0.0'
 left_xarm_ip: '192.168.86.216'
-right_xarm_ip: '192.168.86.230'
+right_xarm_ip: '192.168.86.217'
+
+left_rm65_ip: '192.168.86.218'
+right_rm65_ip: '192.168.86.219'
+
+ufactory_lite6_ip: '192.168.1.153'
 
 # Transformation ports
 oculus_reciever_port: 8087

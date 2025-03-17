@@ -7,14 +7,16 @@ from openteach.utils.network import ZMQCompressedImageTransmitter
 from openteach.utils.files import *
 from openteach.constants import *
 
+
 def plot_line(X1, X2, Y1, Y2):
     plt.plot([X1, X2], [Y1, Y2])
+
 
 class PlotHand2D(Plotter):
     def __init__(self, host, port, display_plot):
         # Display plot
         if not display_plot:
-            matplotlib.use('Agg')
+            matplotlib.use("TkAgg")
 
         # Thumb bound info
         self.display_plot = display_plot
@@ -30,7 +32,7 @@ class PlotHand2D(Plotter):
         self.fig = plt.figure(figsize=(6, 6), dpi=60)
 
         # Plot streamer settings
-        self.socket = ZMQCompressedImageTransmitter(host = host, port = port)
+        self.socket = ZMQCompressedImageTransmitter(host=host, port=port)
 
     def _check_thumb_bounds(self):
         if check_file(self.thumb_bounds_path):
@@ -42,30 +44,30 @@ class PlotHand2D(Plotter):
     def _draw_thumb_bounds(self):
         for idx in range(VR_THUMB_BOUND_VERTICES):
             plot_line(
-                self.thumb_bounds[idx][0], 
-                self.thumb_bounds[(idx + 1) % VR_THUMB_BOUND_VERTICES][0], 
-                self.thumb_bounds[idx][1], 
-                self.thumb_bounds[(idx + 1) % VR_THUMB_BOUND_VERTICES][1]
+                self.thumb_bounds[idx][0],
+                self.thumb_bounds[(idx + 1) % VR_THUMB_BOUND_VERTICES][0],
+                self.thumb_bounds[idx][1],
+                self.thumb_bounds[(idx + 1) % VR_THUMB_BOUND_VERTICES][1],
             )
-        
+
     def draw_hand(self, X, Y):
-        plt.plot(X, Y, 'ro')
+        plt.plot(X, Y, "ro")
 
         if self.thumb_bounds is not None:
             self._draw_thumb_bounds()
 
         # Drawing connections fromn the wrist - 0
-        for idx in OCULUS_JOINTS['metacarpals']:
+        for idx in OCULUS_JOINTS["metacarpals"]:
             plot_line(X[0], X[idx], Y[0], Y[idx])
 
         # Drawing knuckle to knuckle connections and knuckle to finger connections
-        for key in ['knuckles', 'thumb', 'index', 'middle', 'ring', 'pinky']:
+        for key in ["knuckles", "thumb", "index", "middle", "ring", "pinky"]:
             for idx in range(len(OCULUS_JOINTS[key]) - 1):
                 plot_line(
-                    X[OCULUS_JOINTS[key][idx]], 
-                    X[OCULUS_JOINTS[key][idx + 1]], 
-                    Y[OCULUS_JOINTS[key][idx]], 
-                    Y[OCULUS_JOINTS[key][idx + 1]]
+                    X[OCULUS_JOINTS[key][idx]],
+                    X[OCULUS_JOINTS[key][idx + 1]],
+                    Y[OCULUS_JOINTS[key][idx]],
+                    Y[OCULUS_JOINTS[key][idx + 1]],
                 )
 
     def draw(self, X, Y):
@@ -88,5 +90,5 @@ class PlotHand2D(Plotter):
         self.socket.send_image(plot)
 
         # Resetting and pausing the 3D plot
-        plt.pause(0.001) # This make the graph show up if matplotlib is in Tkinter mode
+        plt.pause(0.001)  # This make the graph show up if matplotlib is in Tkinter mode
         plt.cla()

@@ -4,13 +4,16 @@ import rospy
 from copy import deepcopy as copy
 
 
-class DexArmControl():
-    def __init__(self, record_type=None, robot_type='both'):
-    # Initialize Controller Specific Information
+class DexArmControl:
+    def __init__(self, record_type=None, robot_type="both"):
+        # Initialize Controller Specific Information
+        self.robot_joint_state=None
+        
         try:
-                rospy.init_node("dex_arm", disable_signals = True, anonymous = True)
+            rospy.init_node("dex_arm", disable_signals=True, anonymous=True)
         except:
-                pass
+            pass
+
     # Controller initializers
     def _init_robot_control(self):
         # Have the ROS subscribers and publishers here
@@ -20,19 +23,19 @@ class DexArmControl():
     def _callback_robot_joint_state(self, joint_state):
         self.robot_joint_state = joint_state
 
-    #Commanded joint state is basically the joint state being sent as an input to the controller
+    # Commanded joint state is basically the joint state being sent as an input to the controller
     def _callback_robot_commanded_joint_state(self, joint_state):
         self.robot_commanded_joint_state = joint_state
 
     # State information function
     def get_robot_state(self):
-        # Get the robot joint state 
-        raw_joint_state =self.robot_joint_state
+        # Get the robot joint state
+        raw_joint_state = self.robot_joint_state
         joint_state = dict(
-            position = np.array(raw_joint_state.position, dtype = np.float32),
-            velocity = np.array(raw_joint_state.velocity, dtype = np.float32),
-            effort = np.array(raw_joint_state.effort, dtype = np.float32),
-            timestamp = raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9)
+            position=np.array(raw_joint_state.position, dtype=np.float32),
+            velocity=np.array(raw_joint_state.velocity, dtype=np.float32),
+            effort=np.array(raw_joint_state.effort, dtype=np.float32),
+            timestamp=raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9),
         )
         return joint_state
 
@@ -41,21 +44,21 @@ class DexArmControl():
         raw_joint_state = copy(self.robot_commanded_joint_state)
 
         joint_state = dict(
-            position = np.array(raw_joint_state.position, dtype = np.float32),
-            velocity = np.array(raw_joint_state.velocity, dtype = np.float32),
-            effort = np.array(raw_joint_state.effort, dtype = np.float32),
-            timestamp = raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9)
+            position=np.array(raw_joint_state.position, dtype=np.float32),
+            velocity=np.array(raw_joint_state.velocity, dtype=np.float32),
+            effort=np.array(raw_joint_state.effort, dtype=np.float32),
+            timestamp=raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9),
         )
         return joint_state
-        
+
     # Get the robot joint/cartesian position
     def get_robot_position(self):
-       #Get Robot Position
+        # Get Robot Position
         pass
 
     # Get the robot joint velocity
     def get_robot_velocity(self):
-        #Get Robot Velocity
+        # Get Robot Velocity
         pass
 
     # Get the robot joint torque
@@ -86,7 +89,7 @@ class DexArmControl():
     def arm_control(self, arm_pose):
         pass
 
-    #Home the Robot
+    # Home the Robot
     def home_robot(self):
         pass
         # For now we're using cartesian values
