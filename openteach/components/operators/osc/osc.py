@@ -1,33 +1,36 @@
 from isaacgym import gymapi, gymutil
 import numpy as np
-#from utils import clamp, AssetDesc
+
+# from utils import clamp, AssetDesc
 import math
 import hydra
 from copy import copy
 import gym
 from gym.spaces import Box
-#import torch
-
-
-
+# import torch
 
 
 import cv2
-from plots.data_logging import Log, ListOfLogs, NoLog, SimpleLog 
+from plots.data_logging import Log, ListOfLogs, NoLog, SimpleLog
 from isaacgym import gymtorch
 from isaacgym.torch_utils import *
 import time
-#import torch
+# import torch
 
-#from isaacgymenvs.tasks.base.vec_task import VecTask
-#from isaacgymenvs.tasks.base.vec_task import VecTask
-#gym=gymapi.aquire_gym()
+# from isaacgymenvs.tasks.base.vec_task import VecTask
+# from isaacgymenvs.tasks.base.vec_task import VecTask
+# gym=gymapi.aquire_gym()
 
-#@hydra.main(version_base = '1.2', config_path = 'configs', config_name = 'envs')
+# @hydra.main(version_base = '1.2', config_path = 'configs', config_name = 'envs')
 from isaacgym import gymapi
 import torch
 import numpy as np
-from oscar.utils.torch_utils import quat_mul, quat2mat, orientation_error, axisangle2quat
+from oscar.utils.torch_utils import (
+    quat_mul,
+    quat2mat,
+    orientation_error,
+    axisangle2quat,
+)
 from .base_controller import Controller
 
 
@@ -76,6 +79,7 @@ class OSCController(Controller):
         decouple_pos_ori (bool): Whether to decouple position and orientation control or not
         normalize_control (bool): Whether or not to normalize outputted controls to (-1, 1) range
     """
+
     def __init__(
         self,
         input_min,
@@ -88,7 +92,7 @@ class OSCController(Controller):
         control_dim,
         device,
         kp=150.0,
-        kp_limits=(10.0, 300.),
+        kp_limits=(10.0, 300.0),
         damping_ratio=1.0,
         damping_ratio_limits=(0.0, 2.0),
         kp_null=10.0,
@@ -96,7 +100,7 @@ class OSCController(Controller):
         rest_qpos=None,
         decouple_pos_ori=False,
         normalize_control=True,
-        **kwargs,                   # hacky way to sink extraneous args
+        **kwargs,  # hacky way to sink extraneous args
     ):
         # Run super init first
         super().__init__(
@@ -116,8 +120,14 @@ class OSCController(Controller):
         # Store gains
         self.kp = self.nums2tensorarray(nums=kp, dim=6) if kp is not None else None
         self.damping_ratio = damping_ratio
-        self.kp_null = self.nums2tensorarray(nums=kp_null, dim=self.control_dim) if kp_null is not None else None
-        self.kd_null = 2 * torch.sqrt(self.kp_null) if kp_null is not None else None  # critically damped
+        self.kp_null = (
+            self.nums2tensorarray(nums=kp_null, dim=self.control_dim)
+            if kp_null is not None
+            else None
+        )
+        self.kd_null = (
+            2 * torch.sqrt(self.kp_null) if kp_null is not None else None
+        )  # critically damped
         self.kp_limits = np.array(kp_limits)
         self.damping_ratio_limits = np.array(damping_ratio_limits)
         self.kp_null_limits = np.array(kp_null_limits)
@@ -135,15 +145,33 @@ class OSCController(Controller):
         ):
             if variable_gain:
                 # Add this to input / output limits
-                self.input_min = torch.cat([self.input_min, self.nums2tensorarray(nums=-1., dim=dim)])
-                self.input_max = torch.cat([self.input_max, self.nums2tensorarray(nums=1., dim=dim)])
-                self.output_min = torch.cat([self.output_min, self.nums2tensorarray(nums=gain_limits[0], dim=dim)])
-                self.output_max = torch.cat([self.output_max, self.nums2tensorarray(nums=gain_limits[1], dim=dim)])
+                self.input_min = torch.cat(
+                    [self.input_min, self.nums2tensorarray(nums=-1.0, dim=dim)]
+                )
+                self.input_max = torch.cat(
+                    [self.input_max, self.nums2tensorarray(nums=1.0, dim=dim)]
+                )
+                self.output_min = torch.cat(
+                    [
+                        self.output_min,
+                        self.nums2tensorarray(nums=gain_limits[0], dim=dim),
+                    ]
+                )
+                self.output_max = torch.cat(
+                    [
+                        self.output_max,
+                        self.nums2tensorarray(nums=gain_limits[1], dim=dim),
+                    ]
+                )
                 # Update command dim
                 self.command_dim += dim
 
         # Other values
-        self.rest_qpos = self.nums2tensorarray(nums=rest_qpos, dim=self.control_dim) if rest_qpos is not None else None
+        self.rest_qpos = (
+            self.nums2tensorarray(nums=rest_qpos, dim=self.control_dim)
+            if rest_qpos is not None
+            else None
+        )
         self.decouple_pos_ori = decouple_pos_ori
 
         # Initialize internal vars
@@ -189,21 +217,28 @@ class OSCController(Controller):
 
         # If we're training, make sure env_ids is None
         if train:
-            assert env_ids is None or len(env_ids) == self.n_envs, \
+            assert env_ids is None or len(env_ids) == self.n_envs, (
                 "When in training mode, env_ids must be None or len of n_envs!"
+            )
             # Directly set goals
             self.goal_pos = ee_pos + dpose[:, :3]
-            self.goal_ori_mat = quat2mat(quat_mul(axisangle2quat(dpose[:, 3:6]), ee_quat))
+            self.goal_ori_mat = quat2mat(
+                quat_mul(axisangle2quat(dpose[:, 3:6]), ee_quat)
+            )
             self._update_variable_gains(gains=gains, env_ids=env_ids, train=train)
         else:
             # If env_ids is None, we update all the envs
             if env_ids is None:
                 # DON'T use individual indexes since this breaks backpropping
-                env_ids = torch.arange(start=0, end=self.n_envs, device=self.device, dtype=torch.long)
+                env_ids = torch.arange(
+                    start=0, end=self.n_envs, device=self.device, dtype=torch.long
+                )
 
             # Update specific goals
             self.goal_pos[env_ids] = ee_pos[env_ids] + dpose[env_ids, :3]
-            self.goal_ori_mat[env_ids] = quat2mat(quat_mul(axisangle2quat(dpose[env_ids, 3:6]), ee_quat[env_ids]))
+            self.goal_ori_mat[env_ids] = quat2mat(
+                quat_mul(axisangle2quat(dpose[env_ids, 3:6]), ee_quat[env_ids])
+            )
             self._update_variable_gains(gains=gains, env_ids=env_ids, train=train)
 
     def compute_control(self, control_dict):
@@ -227,10 +262,16 @@ class OSCController(Controller):
             tensor: Processed low-level torque control actions
         """
         # Possibly grab parameters from dict, otherwise, use internal values
-        kp = self.nums2tensorarray(nums=control_dict["kp"], dim=6) if \
-            "kp" in control_dict else self.kp
-        damping_ratio = self.nums2tensorarray(nums=control_dict["damping_ratio"], dim=6) if \
-            "damping_ratio" in control_dict else self.damping_ratio
+        kp = (
+            self.nums2tensorarray(nums=control_dict["kp"], dim=6)
+            if "kp" in control_dict
+            else self.kp
+        )
+        damping_ratio = (
+            self.nums2tensorarray(nums=control_dict["damping_ratio"], dim=6)
+            if "damping_ratio" in control_dict
+            else self.damping_ratio
+        )
         kd = 2 * torch.sqrt(kp) * damping_ratio
 
         # Calculate torques
@@ -283,9 +324,7 @@ class OSCController(Controller):
             self._clear_variable_gains()
         # Reset corresponding envs to current positions
         self.update_goal(
-            control_dict=control_dict,
-            command=torch.zeros(n_cmds, 6),
-            env_ids=env_ids
+            control_dict=control_dict, command=torch.zeros(n_cmds, 6), env_ids=env_ids
         )
 
     def get_flattened_goals(self):
@@ -318,8 +357,12 @@ class OSCController(Controller):
         if self.variable_damping_ratio:
             self.damping_ratio = torch.zeros(self.n_envs, 6, device=self.device)
         if self.variable_kp_null:
-            self.kp_null = torch.zeros(self.n_envs, self.control_dim, device=self.device)
-            self.kd_null = torch.zeros(self.n_envs, self.control_dim, device=self.device)
+            self.kp_null = torch.zeros(
+                self.n_envs, self.control_dim, device=self.device
+            )
+            self.kd_null = torch.zeros(
+                self.n_envs, self.control_dim, device=self.device
+            )
 
     def _update_variable_gains(self, gains, env_ids, train=False):
         """
@@ -335,26 +378,28 @@ class OSCController(Controller):
         if train:
             # Ignore indexing
             if self.variable_kp:
-                self.kp = gains[:, idx:idx+6]
+                self.kp = gains[:, idx : idx + 6]
                 idx += 6
             if self.variable_damping_ratio:
-                self.damping_ratio = gains[:, idx:idx+6]
+                self.damping_ratio = gains[:, idx : idx + 6]
                 idx += 6
             if self.variable_kp_null:
-                self.kp_null = gains[:, idx:idx+self.control_dim]
-                self.kd_null = 2 * torch.sqrt(self.kp_null) # critically damped
+                self.kp_null = gains[:, idx : idx + self.control_dim]
+                self.kd_null = 2 * torch.sqrt(self.kp_null)  # critically damped
                 idx += self.control_dim
         else:
             # Use indexing
             if self.variable_kp:
-                self.kp[env_ids] = gains[env_ids, idx:idx+6]
+                self.kp[env_ids] = gains[env_ids, idx : idx + 6]
                 idx += 6
             if self.variable_damping_ratio:
-                self.damping_ratio[env_ids] = gains[env_ids, idx:idx+6]
+                self.damping_ratio[env_ids] = gains[env_ids, idx : idx + 6]
                 idx += 6
             if self.variable_kp_null:
-                self.kp_null[env_ids] = gains[env_ids, idx:idx+self.control_dim]
-                self.kd_null[env_ids] = 2 * torch.sqrt(self.kp_null) # critically damped
+                self.kp_null[env_ids] = gains[env_ids, idx : idx + self.control_dim]
+                self.kd_null[env_ids] = 2 * torch.sqrt(
+                    self.kp_null
+                )  # critically damped
                 idx += self.control_dim
 
     @property
@@ -396,7 +441,11 @@ def _compute_osc_torques(
     # Extract relevant values from the control dict
     q = control_dict["q"][:, :control_dim].to(device)
     qd = control_dict["qd"][:, :control_dim].to(device)
-    mm = control_dict["mm"][:, :control_dim, :control_dim]       # Keep mm on cpu because running the mm inverse is OOM quicker, see https://github.com/pytorch/pytorch/issues/42265
+    mm = control_dict[
+        "mm"
+    ][
+        :, :control_dim, :control_dim
+    ]  # Keep mm on cpu because running the mm inverse is OOM quicker, see https://github.com/pytorch/pytorch/issues/42265
     j_eef = control_dict["j_eef"][:, :, :control_dim].to(device)
     ee_pos = control_dict["eef_state"][:, :3].to(device)
     ee_quat = control_dict["eef_state"][:, 3:7].to(device)
@@ -414,8 +463,12 @@ def _compute_osc_torques(
     m_eef_inv = j_eef @ mm_inv @ torch.transpose(j_eef, 1, 2)
     m_eef = torch.inverse(m_eef_inv)
     if decouple_pos_ori:
-        m_eef_pos_inv = j_eef[:, :3, :] @ mm_inv @ torch.transpose(j_eef[:, :3, :], 1, 2)
-        m_eef_ori_inv = j_eef[:, 3:, :] @ mm_inv @ torch.transpose(j_eef[:, 3:, :], 1, 2)
+        m_eef_pos_inv = (
+            j_eef[:, :3, :] @ mm_inv @ torch.transpose(j_eef[:, :3, :], 1, 2)
+        )
+        m_eef_ori_inv = (
+            j_eef[:, 3:, :] @ mm_inv @ torch.transpose(j_eef[:, 3:, :], 1, 2)
+        )
         m_eef_pos = torch.inverse(m_eef_pos_inv)
         m_eef_ori = torch.inverse(m_eef_ori_inv)
         wrench_pos = m_eef_pos @ err[:, :3, :]
@@ -432,6 +485,11 @@ def _compute_osc_torques(
     # roboticsproceedings.org/rss07/p31.pdf
     if rest_qpos is not None:
         j_eef_inv = m_eef @ j_eef @ mm_inv
-        u_null = kd_null * -qd + kp_null * ((rest_qpos - q + np.pi) % (2 * np.pi) - np.pi)
+        u_null = kd_null * -qd + kp_null * (
+            (rest_qpos - q + np.pi) % (2 * np.pi) - np.pi
+        )
         u_null = mm @ u_null.unsqueeze(-1)
-        u += (torch.eye(control_dim).unsqueeze(0).to(device) - torch.transpose(j_eef, 1, 2) @ j_eef_inv) @ u_null
+        u += (
+            torch.eye(control_dim).unsqueeze(0).to(device)
+            - torch.transpose(j_eef, 1, 2) @ j_eef_inv
+        ) @ u_null

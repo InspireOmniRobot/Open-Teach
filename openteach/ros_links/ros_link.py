@@ -7,8 +7,8 @@ from copy import deepcopy as copy
 class DexArmControl:
     def __init__(self, record_type=None, robot_type="both"):
         # Initialize Controller Specific Information
-        self.robot_joint_state=None
-        
+        self.robot_joint_state = None
+
         try:
             rospy.init_node("dex_arm", disable_signals=True, anonymous=True)
         except:
@@ -35,7 +35,8 @@ class DexArmControl:
             position=np.array(raw_joint_state.position, dtype=np.float32),
             velocity=np.array(raw_joint_state.velocity, dtype=np.float32),
             effort=np.array(raw_joint_state.effort, dtype=np.float32),
-            timestamp=raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9),
+            timestamp=raw_joint_state.header.stamp.secs
+            + (raw_joint_state.header.stamp.nsecs * 1e-9),
         )
         return joint_state
 
@@ -47,7 +48,8 @@ class DexArmControl:
             position=np.array(raw_joint_state.position, dtype=np.float32),
             velocity=np.array(raw_joint_state.velocity, dtype=np.float32),
             effort=np.array(raw_joint_state.effort, dtype=np.float32),
-            timestamp=raw_joint_state.header.stamp.secs + (raw_joint_state.header.stamp.nsecs * 1e-9),
+            timestamp=raw_joint_state.header.stamp.secs
+            + (raw_joint_state.header.stamp.nsecs * 1e-9),
         )
         return joint_state
 

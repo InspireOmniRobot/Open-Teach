@@ -17,6 +17,4 @@ class RM65R(RobotWrapper):
 
     @property
     def recorder_functions(self):
-        return {
-            
-        }
+        return {}

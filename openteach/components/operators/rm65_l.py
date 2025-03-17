@@ -44,16 +44,24 @@ class BimanualLeftArmOperator(Operator):
         self.robot.reset()
 
         # Initialize the subscribers for the arm resolution , gripper and saving the data
-        self._arm_resolution_subscriber = ZMQKeypointSubscriber(host=host, port=arm_resolution_port, topic="button")
+        self._arm_resolution_subscriber = ZMQKeypointSubscriber(
+            host=host, port=arm_resolution_port, topic="button"
+        )
 
         # Gripper and cartesian publisher
         self.gripper_publisher = ZMQKeypointPublisher(host=host, port=gripper_port)
 
-        self.cartesian_publisher = ZMQKeypointPublisher(host=host, port=cartesian_publisher_port)
+        self.cartesian_publisher = ZMQKeypointPublisher(
+            host=host, port=cartesian_publisher_port
+        )
 
-        self.joint_publisher = ZMQKeypointPublisher(host=host, port=joint_publisher_port)
+        self.joint_publisher = ZMQKeypointPublisher(
+            host=host, port=joint_publisher_port
+        )
 
-        self.cartesian_command_publisher = ZMQKeypointPublisher(host=host, port=cartesian_command_publisher_port)
+        self.cartesian_command_publisher = ZMQKeypointPublisher(
+            host=host, port=cartesian_command_publisher_port
+        )
 
         # Get the initial pose of the robot
         home_pose = np.array(self.robot.get_cartesian_position())
@@ -115,7 +123,9 @@ class BimanualLeftArmOperator(Operator):
     # Get the hand frame
     def _get_hand_frame(self):
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
+                flags=zmq.NOBLOCK
+            )
             if data is not None:
                 break
         if data is None:
@@ -125,12 +135,16 @@ class BimanualLeftArmOperator(Operator):
     # Get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[
+            0
+        ]  # Make sure this data is one dimensional
         return res_scale
 
     # Get the arm teleop state from the hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
-        pause_state, pause_status, pause_left = self.get_pause_state_from_hand_keypoints()
+        pause_state, pause_status, pause_left = (
+            self.get_pause_state_from_hand_keypoints()
+        )
         pause_status = np.asanyarray(pause_status).reshape(1)[0]
         return pause_state, pause_status, pause_left
 
@@ -173,7 +187,9 @@ class BimanualLeftArmOperator(Operator):
 
         scaled_cart_pose = np.zeros(6)
         scaled_cart_pose[3:] = unscaled_cart_pose[3:]  # Get the rotation directly
-        scaled_cart_pose[:3] = current_cart_pose[:3] + scaled_diff_in_translation  # Get the scaled translation only
+        scaled_cart_pose[:3] = (
+            current_cart_pose[:3] + scaled_diff_in_translation
+        )  # Get the scaled translation only
 
         return scaled_cart_pose
 
@@ -197,9 +213,12 @@ class BimanualLeftArmOperator(Operator):
 
     # Toggle gripper state using pinky finger pinch
     def get_gripper_state_from_hand_keypoints(self):
-        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        transformed_hand_coords = (
+            self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        )
         distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         thresh = 0.04
         gripper_fr = False
@@ -219,12 +238,16 @@ class BimanualLeftArmOperator(Operator):
 
     # Toggle the robot to pause/resume using ring/middle finger pinch, both finger modes are supported to avoid any hand pose noise issue
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        transformed_hand_coords = (
+            self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        )
         ring_distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["ring"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["ring"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         middle_distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["middle"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["middle"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         thresh = 0.04
         pause_left = True
@@ -244,9 +267,12 @@ class BimanualLeftArmOperator(Operator):
     # Apply retargeted angles to the robot
     def _apply_retargeted_angles(self, log=False):
         # Get the new arm teleop state
-        new_arm_teleop_state, pause_status, pause_left = self._get_arm_teleop_state_from_hand_keypoints()
+        new_arm_teleop_state, pause_status, pause_left = (
+            self._get_arm_teleop_state_from_hand_keypoints()
+        )
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP
+            and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
             moving_hand_frame = self._reset_teleop()
 
@@ -290,7 +316,9 @@ class BimanualLeftArmOperator(Operator):
         # Vector multiplication of rotation components to find the new rotation matrix
         target_rotation = H_RI_RH[:3, :3] @ relative_affine[:3, :3]
         # New pose matrix
-        H_RT_RH = np.block([[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]])
+        H_RT_RH = np.block(
+            [[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]]
+        )
         self.robot_moving_H = copy(H_RT_RH)
 
         final_pose = self._get_scaled_cart_pose(self.robot_moving_H)
@@ -299,7 +327,9 @@ class BimanualLeftArmOperator(Operator):
         if self.use_filter:
             final_pose = self.comp_filter(final_pose)
 
-        gripper_state, status_change, gripper_flag = self.get_gripper_state_from_hand_keypoints()
+        gripper_state, status_change, gripper_flag = (
+            self.get_gripper_state_from_hand_keypoints()
+        )
         if self.gripper_cnt == 1 and status_change is True:
             self.gripper_correct_state = gripper_state
             self.robot.set_gripper_state(self.gripper_correct_state * 800)

@@ -79,7 +79,9 @@ class Filter:
         self.comp_ratio = comp_ratio
 
     def __call__(self, next_state):
-        self.pos_state = self.pos_state * self.comp_ratio + next_state[:3] * (1 - self.comp_ratio)
+        self.pos_state = self.pos_state * self.comp_ratio + next_state[:3] * (
+            1 - self.comp_ratio
+        )
         ori_interp = Slerp(
             [0, 1],
             R.from_rotvec(np.stack([self.ori_state, next_state[3:6]], axis=0)),
@@ -113,13 +115,21 @@ class ULite6ArmOperator(Operator):
         # Gripper Publisher
         self.gripper_publisher = ZMQKeypointPublisher(host=host, port=gripper_port)
         # Cartesian Publisher
-        self.cartesian_publisher = ZMQKeypointPublisher(host=host, port=cartesian_publisher_port)
+        self.cartesian_publisher = ZMQKeypointPublisher(
+            host=host, port=cartesian_publisher_port
+        )
         # Joint Publisher
-        self.joint_publisher = ZMQKeypointPublisher(host=host, port=joint_publisher_port)
+        self.joint_publisher = ZMQKeypointPublisher(
+            host=host, port=joint_publisher_port
+        )
         # Cartesian Command Publisher
-        self.cartesian_command_publisher = ZMQKeypointPublisher(host=host, port=cartesian_command_publisher_port)
+        self.cartesian_command_publisher = ZMQKeypointPublisher(
+            host=host, port=cartesian_command_publisher_port
+        )
         # Arm Resolution Subscriber
-        self._arm_resolution_subscriber = ZMQKeypointSubscriber(host=host, port=arm_resolution_port, topic="button")
+        self._arm_resolution_subscriber = ZMQKeypointSubscriber(
+            host=host, port=arm_resolution_port, topic="button"
+        )
         # Define Robot object
         self._robot = ULite6Arm(ip=ULITE6.IP)
         self.robot.reset()
@@ -185,7 +195,9 @@ class ULite6ArmOperator(Operator):
     def _get_hand_frame(self):
         data = None  # Initialize with a default value
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
+                flags=zmq.NOBLOCK
+            )
             if data is not None:
                 break
         if data is None:
@@ -195,12 +207,16 @@ class ULite6ArmOperator(Operator):
     # Function to get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[
+            0
+        ]  # Make sure this data is one dimensional
         return res_scale
 
     # Function to get the arm teleop state from the hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
-        pause_state, pause_status, pause_right = self.get_pause_state_from_hand_keypoints()
+        pause_state, pause_status, pause_right = (
+            self.get_pause_state_from_hand_keypoints()
+        )
         pause_status = np.asanyarray(pause_status).reshape(1)[0]
 
         return pause_state, pause_status, pause_right
@@ -233,7 +249,9 @@ class ULite6ArmOperator(Operator):
         # unscaled_cart_pose[:3]=[u]
         # Get the current cart pose
         # home_pose = self.robot.get_cartesian_position()
-        home_pose_array = np.array(self.robot.get_cartesian_position())  # Convert tuple to numpy array
+        home_pose_array = np.array(
+            self.robot.get_cartesian_position()
+        )  # Convert tuple to numpy array
         # current_homo_mat = self.robot_pose_aa_to_affine(home_pose_array)
         # current_cart_pose = home_pose_array  # self._homo2cart(current_homo_mat)
 
@@ -243,7 +261,9 @@ class ULite6ArmOperator(Operator):
 
         scaled_cart_pose = np.zeros(6)
         scaled_cart_pose[3:] = unscaled_cart_pose[3:]  # Get the rotation directly
-        scaled_cart_pose[:3] = home_pose_array[:3] + scaled_diff_in_translation  # Get the scaled translation only
+        scaled_cart_pose[:3] = (
+            home_pose_array[:3] + scaled_diff_in_translation
+        )  # Get the scaled translation only
 
         return scaled_cart_pose
 
@@ -263,9 +283,12 @@ class ULite6ArmOperator(Operator):
 
     # Function to get gripper state from hand keypoints
     def get_gripper_state_from_hand_keypoints(self):
-        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        transformed_hand_coords = (
+            self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        )
         distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         thresh = 0.03
         gripper_fl = False
@@ -285,12 +308,16 @@ class ULite6ArmOperator(Operator):
 
     # Toggle the robot to pause/resume using ring/middle finger pinch, both finger modes are supported to avoid any hand pose noise issue
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        transformed_hand_coords = (
+            self._transformed_hand_keypoint_subscriber.recv_keypoints()
+        )
         ring_distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["ring"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["ring"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         middle_distance = np.linalg.norm(
-            transformed_hand_coords[OCULUS_JOINTS["middle"][-1]] - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
+            transformed_hand_coords[OCULUS_JOINTS["middle"][-1]]
+            - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
         )
         thresh = 0.03
         pause_right = True
@@ -310,12 +337,17 @@ class ULite6ArmOperator(Operator):
     # Function to apply retargeted angles
     def _apply_retargeted_angles(self, log=False):
         # See if there is a reset in the teleop state
-        new_arm_teleop_state, pause_status, pause_right = self._get_arm_teleop_state_from_hand_keypoints()
-        
+        new_arm_teleop_state, pause_status, pause_right = (
+            self._get_arm_teleop_state_from_hand_keypoints()
+        )
+
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP
+            and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
+            moving_hand_frame = (
+                self._reset_teleop()
+            )  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
 
@@ -358,13 +390,17 @@ class ULite6ArmOperator(Operator):
         if self.use_filter:
             final_pose = self.comp_filter(final_pose)
 
-        gripper_state, status_change, gripper_flag = self.get_gripper_state_from_hand_keypoints()
+        gripper_state, status_change, gripper_flag = (
+            self.get_gripper_state_from_hand_keypoints()
+        )
         if gripper_flag == 1 and status_change is True:
             self.gripper_correct_state = gripper_state
             self.robot.set_gripper_state(self.gripper_correct_state * 800)
 
         # We save the states here during teleoperation as saving directly at 90Hz seems to be too fast for XArm.
-        self.gripper_publisher.pub_keypoints(self.gripper_correct_state, "gripper_right")
+        self.gripper_publisher.pub_keypoints(
+            self.gripper_correct_state, "gripper_right"
+        )
         position = self.robot.get_cartesian_position()
         joint_position = self.robot.get_joint_position()
         self.cartesian_publisher.pub_keypoints(position, "cartesian")

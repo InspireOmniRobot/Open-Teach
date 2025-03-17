@@ -4,13 +4,14 @@ from openteach.components import Component
 from openteach.constants import OCULUS_NUM_KEYPOINTS
 from openteach.utils.network import ZMQKeypointSubscriber
 
+
 class Hand2DVisualizer(Component):
-    def __init__(self, host, transformed_keypoint_port, oculus_feedback_port, display_plot):
-        self.notify_component_start('hand 2D plotter')
+    def __init__(
+        self, host, transformed_keypoint_port, oculus_feedback_port, display_plot
+    ):
+        self.notify_component_start("hand 2D plotter")
         self.subscriber = ZMQKeypointSubscriber(
-            host = host,
-            port = transformed_keypoint_port,
-            topic = 'transformed_hand_coords'
+            host=host, port=transformed_keypoint_port, topic="transformed_hand_coords"
         )
 
         self.plotter2D = PlotHand2D(host, oculus_feedback_port, display_plot)
@@ -28,4 +29,4 @@ class Hand2DVisualizer(Component):
                 break
 
         self.subscriber.stop()
-        print('Stopping the hand 2D visualizer process')
+        print("Stopping the hand 2D visualizer process")

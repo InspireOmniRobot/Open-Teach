@@ -25,15 +25,20 @@ def get_distance(start_vector, end_vector):
 
 @njit
 def linear_transform(curr_val, source_bound, target_bound):
-    multiplier = (target_bound[1] - target_bound[0]) / (source_bound[1] - source_bound[0])
+    multiplier = (target_bound[1] - target_bound[0]) / (
+        source_bound[1] - source_bound[0]
+    )
     target_val = ((curr_val - source_bound[0]) * multiplier) + target_bound[0]
     return target_val
 
 
 def persperctive_transform(input_coordinates, given_bound, target_bound):
-    transformation_matrix = cv2.getPerspectiveTransform(np.float32(given_bound), np.float32(target_bound))
+    transformation_matrix = cv2.getPerspectiveTransform(
+        np.float32(given_bound), np.float32(target_bound)
+    )
     transformed_coordinate = np.matmul(
-        np.array(transformation_matrix), np.array([input_coordinates[0], input_coordinates[1], 1])
+        np.array(transformation_matrix),
+        np.array([input_coordinates[0], input_coordinates[1], 1]),
     )
     transformed_coordinate = transformed_coordinate / transformed_coordinate[-1]
 

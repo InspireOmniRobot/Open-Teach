@@ -86,7 +86,9 @@ class ULite6Arm(RobotWrapper):
         self._controller.set_gripper_status(gripper_state)
 
     def get_gripper_state_from_socket(self):
-        self._gripper_state_subscriber = ZMQKeypointSubscriber(host="10.19.216.156", port=8108, topic="gripper_right")
+        self._gripper_state_subscriber = ZMQKeypointSubscriber(
+            host="10.19.216.156", port=8108, topic="gripper_right"
+        )
         gripper_state = self._gripper_state_subscriber.recv_keypoints()
         gripper_state_dict = dict(
             gripper_position=np.array(gripper_state, dtype=np.float32),
@@ -95,7 +97,9 @@ class ULite6Arm(RobotWrapper):
         return gripper_state_dict
 
     def get_cartesian_state_from_socket(self):
-        self._cartesian_state_subscriber = ZMQKeypointSubscriber(host="10.19.216.156", port=8118, topic="cartesian")
+        self._cartesian_state_subscriber = ZMQKeypointSubscriber(
+            host="10.19.216.156", port=8118, topic="cartesian"
+        )
         cartesian_state = self._cartesian_state_subscriber.recv_keypoints()
         cartesian_state_dict = dict(
             cartesian_position=np.array(cartesian_state, dtype=np.float32),
@@ -104,7 +108,9 @@ class ULite6Arm(RobotWrapper):
         return cartesian_state_dict
 
     def get_joint_state_from_socket(self):
-        self._joint_state_subscriber = ZMQKeypointSubscriber(host="10.19.216.156", port=8119, topic="joint")
+        self._joint_state_subscriber = ZMQKeypointSubscriber(
+            host="10.19.216.156", port=8119, topic="joint"
+        )
         joint_state = self._joint_state_subscriber.recv_keypoints()
         joint_state_dict = dict(
             joint_position=np.array(joint_state, dtype=np.float32),
@@ -114,7 +120,9 @@ class ULite6Arm(RobotWrapper):
         return joint_state_dict
 
     def get_cartesian_commanded_position(self):
-        self.cartesian_state_subscriber = ZMQKeypointSubscriber(host="10.19.216.156", port=8120, topic="cartesian")
+        self.cartesian_state_subscriber = ZMQKeypointSubscriber(
+            host="10.19.216.156", port=8120, topic="cartesian"
+        )
         cartesian_state = self.cartesian_state_subscriber.recv_keypoints()
         cartesian_state_dict = dict(
             commanded_cartesian_position=np.array(cartesian_state, dtype=np.float32),

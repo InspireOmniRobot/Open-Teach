@@ -16,7 +16,7 @@ import torch
 import numpy as np
 
 
-def to_torch(x, dtype=torch.float, device='cuda:0', requires_grad=False):
+def to_torch(x, dtype=torch.float, device="cuda:0", requires_grad=False):
     return torch.tensor(x, dtype=dtype, device=device, requires_grad=requires_grad)
 
 
@@ -113,8 +113,10 @@ def quat_slerp(quat0, quat1, frac, shortestpath=True, eps=1.0e-15):
     where_small_angle = abs(angle) < eps
 
     isin = 1.0 / torch.sin(angle)
-    val = quat0 * torch.sin((1.0 - frac) * angle) * isin + \
-        quat1 * torch.sin(frac * angle) * isin
+    val = (
+        quat0 * torch.sin((1.0 - frac) * angle) * isin
+        + quat1 * torch.sin(frac * angle) * isin
+    )
 
     # Filter edge cases
     val = torch.where(
@@ -178,9 +180,11 @@ def rotate_vec_by_quat(vec, quat):
     # Parse quaternion into vector and scalar components
     q_vec, q_s = quat[..., :3], quat[..., 3].unsqueeze(-1)
     # Calculate new vector and return
-    return 2.0 * dot(q_vec, vec, keepdim=True) * q_vec + \
-           (q_s * q_s - dot(q_vec, q_vec, keepdim=True)) * vec + \
-           2.0 * q_s * torch.cross(q_vec, vec)
+    return (
+        2.0 * dot(q_vec, vec, keepdim=True) * q_vec
+        + (q_s * q_s - dot(q_vec, q_vec, keepdim=True)) * vec
+        + 2.0 * q_s * torch.cross(q_vec, vec)
+    )
 
 
 @torch.jit.script
@@ -210,8 +214,11 @@ def rotate_vec_by_axisangle(vec, aa_vec):
 
     # Rotate the vector using the formula (see link above)
     c, s = torch.cos(angle), torch.sin(angle)
-    vec_rot = vec * c + torch.cross(aa_v, vec) * s + \
-        aa_v * (torch.sum(aa_v * vec, dim=-1, keepdim=True)) * (1 - c)
+    vec_rot = (
+        vec * c
+        + torch.cross(aa_v, vec) * s
+        + aa_v * (torch.sum(aa_v * vec, dim=-1, keepdim=True)) * (1 - c)
+    )
 
     return vec_rot
 
@@ -253,7 +260,11 @@ def orientation_error(desired, current):
     rd2 = desired[:, :, 1]
     rd3 = desired[:, :, 2]
 
-    error = 0.5 * (torch.cross(rc1, rd1, dim=-1) + torch.cross(rc2, rd2, dim=-1) + torch.cross(rc3, rd3, dim=-1))
+    error = 0.5 * (
+        torch.cross(rc1, rd1, dim=-1)
+        + torch.cross(rc2, rd2, dim=-1)
+        + torch.cross(rc3, rd3, dim=-1)
+    )
 
     # Reshape
     error = error.reshape(list(input_shape) + [3])
@@ -279,7 +290,9 @@ def orientation_error_from_quat(desired, current):
 
     cc = quat_conjugate(current)
     q_r = quat_mul(desired, cc)
-    return (q_r[:, 0:3] * torch.sign(q_r[:, 3]).unsqueeze(-1)).reshape(list(input_shape) + [3])
+    return (q_r[:, 0:3] * torch.sign(q_r[:, 3]).unsqueeze(-1)).reshape(
+        list(input_shape) + [3]
+    )
 
 
 @torch.jit.script
@@ -297,21 +310,51 @@ def quat2mat(quaternion):
     q = quaternion.reshape(-1, 4)[:, inds]
 
     # Conduct dot product
-    n = torch.bmm(q.unsqueeze(1), q.unsqueeze(-1)).squeeze(-1).squeeze(-1)        # shape (-1)
+    n = torch.bmm(q.unsqueeze(1), q.unsqueeze(-1)).squeeze(-1).squeeze(-1)  # shape (-1)
     idx = torch.nonzero(n).reshape(-1)
-    q_ = q.clone()          # Copy so we don't have inplace operations that fail to backprop
+    q_ = q.clone()  # Copy so we don't have inplace operations that fail to backprop
     q_[idx, :] = q[idx, :] * torch.sqrt(2.0 / n[idx].unsqueeze(-1))
 
     # Conduct outer product
-    q2 = torch.bmm(q_.unsqueeze(-1), q_.unsqueeze(1)).squeeze(-1).squeeze(-1)        # shape (-1, 4 ,4)
+    q2 = (
+        torch.bmm(q_.unsqueeze(-1), q_.unsqueeze(1)).squeeze(-1).squeeze(-1)
+    )  # shape (-1, 4 ,4)
 
     # Create return array
-    ret = torch.eye(3, 3, device=q.device).reshape(1, 3, 3).repeat(torch.prod(torch.tensor(input_shape)), 1, 1)
-    ret[idx, :, :] = torch.stack([
-        torch.stack([1.0 - q2[idx, 2, 2] - q2[idx, 3, 3], q2[idx, 1, 2] - q2[idx, 3, 0], q2[idx, 1, 3] + q2[idx, 2, 0]], dim=-1),
-        torch.stack([q2[idx, 1, 2] + q2[idx, 3, 0], 1.0 - q2[idx, 1, 1] - q2[idx, 3, 3], q2[idx, 2, 3] - q2[idx, 1, 0]], dim=-1),
-        torch.stack([q2[idx, 1, 3] - q2[idx, 2, 0], q2[idx, 2, 3] + q2[idx, 1, 0], 1.0 - q2[idx, 1, 1] - q2[idx, 2, 2]], dim=-1),
-    ], dim=1)
+    ret = (
+        torch.eye(3, 3, device=q.device)
+        .reshape(1, 3, 3)
+        .repeat(torch.prod(torch.tensor(input_shape)), 1, 1)
+    )
+    ret[idx, :, :] = torch.stack(
+        [
+            torch.stack(
+                [
+                    1.0 - q2[idx, 2, 2] - q2[idx, 3, 3],
+                    q2[idx, 1, 2] - q2[idx, 3, 0],
+                    q2[idx, 1, 3] + q2[idx, 2, 0],
+                ],
+                dim=-1,
+            ),
+            torch.stack(
+                [
+                    q2[idx, 1, 2] + q2[idx, 3, 0],
+                    1.0 - q2[idx, 1, 1] - q2[idx, 3, 3],
+                    q2[idx, 2, 3] - q2[idx, 1, 0],
+                ],
+                dim=-1,
+            ),
+            torch.stack(
+                [
+                    q2[idx, 1, 3] - q2[idx, 2, 0],
+                    q2[idx, 2, 3] + q2[idx, 1, 0],
+                    1.0 - q2[idx, 1, 1] - q2[idx, 2, 2],
+                ],
+                dim=-1,
+            ),
+        ],
+        dim=1,
+    )
 
     # Reshape and return output
     ret = ret.reshape(list(input_shape) + [3, 3])
@@ -329,21 +372,28 @@ def quat2axisangle(quat):
         tensor: (..., 3) axis-angle exponential coordinates
     """
     # reshape quaternion
-    quat_shape = quat.shape[:-1]      # ignore last dim
+    quat_shape = quat.shape[:-1]  # ignore last dim
     quat = quat.reshape(-1, 4)
     # clip quaternion
-    quat[:, 3] = torch.clamp(quat[:, 3], -1., 1.)
+    quat[:, 3] = torch.clamp(quat[:, 3], -1.0, 1.0)
     # Calculate denominator
-    den = torch.sqrt(1. - quat[:,3] * quat[:,3])
+    den = torch.sqrt(1.0 - quat[:, 3] * quat[:, 3])
     # Map this into a mask
 
     # Create return array
     ret = torch.zeros_like(quat)[:, :3]
     idx = torch.nonzero(den).reshape(-1)
-    ret[idx, :] = (quat[idx, :3] * 2. * torch.acos(quat[idx, 3]).unsqueeze(-1)) / den[idx].unsqueeze(-1)
+    ret[idx, :] = (quat[idx, :3] * 2.0 * torch.acos(quat[idx, 3]).unsqueeze(-1)) / den[
+        idx
+    ].unsqueeze(-1)
 
     # Reshape and return output
-    ret = ret.reshape(list(quat_shape) + [3, ])
+    ret = ret.reshape(
+        list(quat_shape)
+        + [
+            3,
+        ]
+    )
     return ret
 
 
@@ -371,14 +421,22 @@ def axisangle2quat(vec, eps=1e-6):
     quat[:, 3] = 1.0
 
     # Grab indexes where angle is not zero an convert the input to its quaternion form
-    idx = angle.reshape(-1) > eps #torch.nonzero(angle).reshape(-1)
-    quat[idx, :] = torch.cat([
-        vec[idx, :] * torch.sin(angle[idx, :] / 2.0) / angle[idx, :],
-        torch.cos(angle[idx, :] / 2.0)
-    ], dim=-1)
+    idx = angle.reshape(-1) > eps  # torch.nonzero(angle).reshape(-1)
+    quat[idx, :] = torch.cat(
+        [
+            vec[idx, :] * torch.sin(angle[idx, :] / 2.0) / angle[idx, :],
+            torch.cos(angle[idx, :] / 2.0),
+        ],
+        dim=-1,
+    )
 
     # Reshape and return output
-    quat = quat.reshape(list(input_shape) + [4, ])
+    quat = quat.reshape(
+        list(input_shape)
+        + [
+            4,
+        ]
+    )
     return quat
 
 
@@ -402,11 +460,13 @@ def quat_rotate(q, v):
     shape = q.shape
     q_w = q[:, -1]
     q_vec = q[:, :3]
-    a = v * (2.0 * q_w ** 2 - 1.0).unsqueeze(-1)
+    a = v * (2.0 * q_w**2 - 1.0).unsqueeze(-1)
     b = torch.cross(q_vec, v) * q_w.unsqueeze(-1) * 2.0
-    c = q_vec * \
-        torch.bmm(q_vec.view(shape[0], 1, 3), v.view(
-            shape[0], 3, 1)).squeeze(-1) * 2.0
+    c = (
+        q_vec
+        * torch.bmm(q_vec.view(shape[0], 1, 3), v.view(shape[0], 3, 1)).squeeze(-1)
+        * 2.0
+    )
     return a + b + c
 
 
@@ -415,11 +475,13 @@ def quat_rotate_inverse(q, v):
     shape = q.shape
     q_w = q[:, -1]
     q_vec = q[:, :3]
-    a = v * (2.0 * q_w ** 2 - 1.0).unsqueeze(-1)
+    a = v * (2.0 * q_w**2 - 1.0).unsqueeze(-1)
     b = torch.cross(q_vec, v) * q_w.unsqueeze(-1) * 2.0
-    c = q_vec * \
-        torch.bmm(q_vec.view(shape[0], 1, 3), v.view(
-            shape[0], 3, 1)).squeeze(-1) * 2.0
+    c = (
+        q_vec
+        * torch.bmm(q_vec.view(shape[0], 1, 3), v.view(shape[0], 3, 1)).squeeze(-1)
+        * 2.0
+    )
     return a - b + c
 
 
@@ -474,13 +536,12 @@ def get_basis_vector(q, v):
     return quat_rotate(q, v)
 
 
-def get_axis_params(value, axis_idx, x_value=0., dtype=np.float, n_dims=3):
-    """construct arguments to `Vec` according to axis index.
-    """
+def get_axis_params(value, axis_idx, x_value=0.0, dtype=np.float, n_dims=3):
+    """construct arguments to `Vec` according to axis index."""
     zs = np.zeros((n_dims,))
     assert axis_idx < n_dims, "the axis dim should be within the vector dimensions"
-    zs[axis_idx] = 1.
-    params = np.where(zs == 1., value, zs)
+    zs[axis_idx] = 1.0
+    params = np.where(zs == 1.0, value, zs)
     params[0] = x_value
     return list(params.astype(dtype))
 
@@ -497,22 +558,31 @@ def get_euler_xyz(q):
     qx, qy, qz, qw = 0, 1, 2, 3
     # roll (x-axis rotation)
     sinr_cosp = 2.0 * (q[:, qw] * q[:, qx] + q[:, qy] * q[:, qz])
-    cosr_cosp = q[:, qw] * q[:, qw] - q[:, qx] * \
-        q[:, qx] - q[:, qy] * q[:, qy] + q[:, qz] * q[:, qz]
+    cosr_cosp = (
+        q[:, qw] * q[:, qw]
+        - q[:, qx] * q[:, qx]
+        - q[:, qy] * q[:, qy]
+        + q[:, qz] * q[:, qz]
+    )
     roll = torch.atan2(sinr_cosp, cosr_cosp)
 
     # pitch (y-axis rotation)
     sinp = 2.0 * (q[:, qw] * q[:, qy] - q[:, qz] * q[:, qx])
-    pitch = torch.where(torch.abs(sinp) >= 1, copysign(
-        np.pi / 2.0, sinp), torch.asin(sinp))
+    pitch = torch.where(
+        torch.abs(sinp) >= 1, copysign(np.pi / 2.0, sinp), torch.asin(sinp)
+    )
 
     # yaw (z-axis rotation)
     siny_cosp = 2.0 * (q[:, qw] * q[:, qz] + q[:, qx] * q[:, qy])
-    cosy_cosp = q[:, qw] * q[:, qw] + q[:, qx] * \
-        q[:, qx] - q[:, qy] * q[:, qy] - q[:, qz] * q[:, qz]
+    cosy_cosp = (
+        q[:, qw] * q[:, qw]
+        + q[:, qx] * q[:, qx]
+        - q[:, qy] * q[:, qy]
+        - q[:, qz] * q[:, qz]
+    )
     yaw = torch.atan2(siny_cosp, cosy_cosp)
 
-    return roll % (2*np.pi), pitch % (2*np.pi), yaw % (2*np.pi)
+    return roll % (2 * np.pi), pitch % (2 * np.pi), yaw % (2 * np.pi)
 
 
 @torch.jit.script
@@ -552,7 +622,7 @@ def tensor_clamp(t, min_t, max_t):
 
 @torch.jit.script
 def scale(x, lower, upper):
-    return (0.5 * (x + 1.0) * (upper - lower) + lower)
+    return 0.5 * (x + 1.0) * (upper - lower) + lower
 
 
 @torch.jit.script
@@ -576,8 +646,9 @@ def compute_heading_and_up(
     up_vec = get_basis_vector(torso_quat, vec1).view(num_envs, 3)
     heading_vec = get_basis_vector(torso_quat, vec0).view(num_envs, 3)
     up_proj = up_vec[:, up_idx]
-    heading_proj = torch.bmm(heading_vec.view(
-        num_envs, 1, 3), target_dirs.view(num_envs, 3, 1)).view(num_envs)
+    heading_proj = torch.bmm(
+        heading_vec.view(num_envs, 1, 3), target_dirs.view(num_envs, 3, 1)
+    ).view(num_envs)
 
     return torso_quat, up_proj, heading_proj, up_vec, heading_vec
 
@@ -589,8 +660,9 @@ def compute_rot(torso_quat, velocity, ang_velocity, targets, torso_positions):
 
     roll, pitch, yaw = get_euler_xyz(torso_quat)
 
-    walk_target_angle = torch.atan2(targets[:, 2] - torso_positions[:, 2],
-                                    targets[:, 0] - torso_positions[:, 0])
+    walk_target_angle = torch.atan2(
+        targets[:, 2] - torso_positions[:, 2], targets[:, 0] - torso_positions[:, 0]
+    )
     angle_to_target = walk_target_angle - yaw
 
     return vel_loc, angvel_loc, roll, pitch, yaw, angle_to_target

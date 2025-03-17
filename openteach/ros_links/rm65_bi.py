@@ -30,13 +30,28 @@ class Robot(RoboticArm):
         if _software_info[0] == 0:
             print("\n================== Arm Software Information ==================")
             print("Robot arm id", self._handle.id)
-            print("Algorithm Library Version: ", _software_info[1]["algorithm_info"]["version"])
-            print("Control Layer Software Version: ", _software_info[1]["ctrl_info"]["version"])
-            print("Dynamics Version: ", _software_info[1]["dynamic_info"]["model_version"])
-            print("Planning Layer Software Version: ", _software_info[1]["plan_info"]["version"])
+            print(
+                "Algorithm Library Version: ",
+                _software_info[1]["algorithm_info"]["version"],
+            )
+            print(
+                "Control Layer Software Version: ",
+                _software_info[1]["ctrl_info"]["version"],
+            )
+            print(
+                "Dynamics Version: ", _software_info[1]["dynamic_info"]["model_version"]
+            )
+            print(
+                "Planning Layer Software Version: ",
+                _software_info[1]["plan_info"]["version"],
+            )
             print("==============================================================\n")
         else:
-            print("\nFailed to get arm software information, Error code: ", _software_info[0], "\n")
+            print(
+                "\nFailed to get arm software information, Error code: ",
+                _software_info[0],
+                "\n",
+            )
             raise Exception("Failed to get Realman RM65 arm software information")
 
         # 设置机械臂为仿真模式
@@ -114,10 +129,14 @@ class DexArmControl:
         return joint_state
 
     def get_arm_velocity(self):
-        raise NotImplementedError("get_arm_velocity() is not implemented for Realman RM65")
+        raise NotImplementedError(
+            "get_arm_velocity() is not implemented for Realman RM65"
+        )
 
     def get_arm_torque(self):
-        raise NotImplementedError("get_arm_torque() is not implemented for Realman RM65")
+        raise NotImplementedError(
+            "get_arm_torque() is not implemented for Realman RM65"
+        )
 
     def get_arm_cartesian_coords(self):
         status, home_pose = self.robot.get_position_aa()
@@ -125,24 +144,35 @@ class DexArmControl:
 
     def get_gripper_state(self):
         gripper_position = self.robot.get_gripper_position()
-        gripper_pose = dict(position=np.array(gripper_position[1], dtype=np.float32).flatten(), timestamp=time.time())
+        gripper_pose = dict(
+            position=np.array(gripper_position[1], dtype=np.float32).flatten(),
+            timestamp=time.time(),
+        )
         return gripper_pose
 
     def move_arm_joint(self, joint_angles):
-        self.robot.set_servo_angle(joint_angles, wait=True, is_radian=True, mvacc=80, speed=10)
+        self.robot.set_servo_angle(
+            joint_angles, wait=True, is_radian=True, mvacc=80, speed=10
+        )
 
     def move_arm_cartesian(self, cartesian_pos, duration=3):
-        self.robot.set_servo_cartesian_aa(cartesian_pos, wait=False, relative=False, mvacc=200, speed=50)
+        self.robot.set_servo_cartesian_aa(
+            cartesian_pos, wait=False, relative=False, mvacc=200, speed=50
+        )
 
     def arm_control(self, cartesian_pose):
         if self.robot.has_error:
             self.robot.clear()
             self.robot.set_mode_and_state(1)
-        self.robot.set_servo_cartesian_aa(cartesian_pose, wait=False, relative=False, mvacc=200, speed=50)
+        self.robot.set_servo_cartesian_aa(
+            cartesian_pose, wait=False, relative=False, mvacc=200, speed=50
+        )
 
     def get_arm_joint_state(self):
         joint_positions = np.array(self.robot.get_servo_angle()[1])
-        joint_state = dict(position=np.array(joint_positions, dtype=np.float32), timestamp=time.time())
+        joint_state = dict(
+            position=np.array(joint_positions, dtype=np.float32), timestamp=time.time()
+        )
         return joint_state
 
     def get_cartesian_state(self):

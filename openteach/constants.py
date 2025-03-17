@@ -2,7 +2,10 @@ import os.path as path
 
 # VR detector
 # Arm movement
-WRIST_HOME_STATE = {"translation": [0, 0, 0], "rotation_matrix": [1, 0, 0, 0, 1, 0, 0, 0, -1]}
+WRIST_HOME_STATE = {
+    "translation": [0, 0, 0],
+    "rotation_matrix": [1, 0, 0, 0, 1, 0, 0, 0, -1],
+}
 
 # Joint Information
 OCULUS_NUM_KEYPOINTS = 24
@@ -21,7 +24,11 @@ OCULUS_JOINTS = {
     "pinky": [15, 16, 17, 18, 23],
 }
 
-OCULUS_VIEW_LIMITS = {"x_limits": [-0.04, 0.04], "y_limits": [-0.02, 0.25], "z_limits": [-0.04, 0.04]}
+OCULUS_VIEW_LIMITS = {
+    "x_limits": [-0.04, 0.04],
+    "y_limits": [-0.02, 0.25],
+    "z_limits": [-0.04, 0.04],
+}
 
 VR_FREQ = 60
 BIMANUAL_VR_FREQ = 90
@@ -67,7 +74,9 @@ DEPTH_PORT_OFFSET = 1000
 # Calibration file paths
 CALIBRATION_FILES_PATH = "calibration_files"
 VR_THUMB_BOUNDS_PATH = path.join(CALIBRATION_FILES_PATH, "vr_thumb_bounds.npy")
-VR_DISPLAY_THUMB_BOUNDS_PATH = path.join(CALIBRATION_FILES_PATH, "vr_thumb_plot_bounds.npy")
+VR_DISPLAY_THUMB_BOUNDS_PATH = path.join(
+    CALIBRATION_FILES_PATH, "vr_thumb_plot_bounds.npy"
+)
 VR_2D_PLOT_SAVE_PATH = path.join(CALIBRATION_FILES_PATH, "oculus_hand_2d_plot.jpg")
 XELA_PLOT_SAVE_PATH = path.join(CALIBRATION_FILES_PATH, "xela_plot.png")
 
