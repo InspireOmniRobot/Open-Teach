@@ -133,7 +133,6 @@ class AllegroHandEnv(Hand_Env):
         sim_params.substeps = 2
         sim_params.up_axis = gymapi.UP_AXIS_Z
         sim_params.gravity = gymapi.Vec3(0.0, -9.8, 0)
-
         # set PhysX-specific parameters
         if self.physics_engine == gymapi.SIM_PHYSX:
             sim_params.physx.use_gpu = True

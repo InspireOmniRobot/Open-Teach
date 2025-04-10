@@ -1,22 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import zmq
+from copy import deepcopy as copy
 
+import matplotlib.pyplot as plt
+import numpy as np
+import zmq
 from mpl_toolkits.mplot3d import Axes3D
+from numpy.linalg import pinv
+from scipy.spatial.transform import Rotation, Slerp
+from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 
-from copy import deepcopy as copy
 from openteach.constants import *
-from openteach.utils.timer import FrequencyTimer
-from openteach.utils.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
-from openteach.utils.vectorops import *
-from openteach.utils.files import *
 from openteach.robot.bimanual_left import BimanualLeft
-from scipy.spatial.transform import Rotation, Slerp
-from .operator import Operator
-from scipy.spatial.transform import Rotation as R
-from numpy.linalg import pinv
+from openteach.utils.files import *
+from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
+from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 
@@ -88,7 +88,7 @@ class BimanualLeftArmOperator(Operator):
         # Get the initial pose of the robot
         home_pose = np.array(self.robot.get_cartesian_position())
         self.robot_init_H = self.robot_pose_aa_to_affine(home_pose)
-        self._timer = FrequencyTimer(BIMANUAL_VR_FREQ)
+        self._timer = FrequencyTimer(VR_FREQ)
 
         # Use the filter
         self.use_filter = use_filter
@@ -189,7 +189,6 @@ class BimanualLeftArmOperator(Operator):
         R = Rotation.from_matrix(homo_mat[:3, :3]).as_rotvec(degrees=False)
 
         cart = np.concatenate([t, R], axis=0)
-
         return cart
 
     # Get the scaled cartesian position

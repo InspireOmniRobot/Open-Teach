@@ -30,8 +30,7 @@ OCULUS_VIEW_LIMITS = {
     "z_limits": [-0.04, 0.04],
 }
 
-VR_FREQ = 60
-BIMANUAL_VR_FREQ = 90
+VR_FREQ = 30
 LIBERO_FREQ = 20
 
 # XELA Sensor parameters
@@ -47,7 +46,7 @@ XELA_NUM_TAXELS = 16
 # Robot parameters
 
 # Allegro
-ALLEGRO_JOINTS_PER_FINGER = 4
+ALLEGRO_JOINTS_PER_FINGER = 30
 ALLEGRO_JOINT_OFFSETS = {"index": 0, "middle": 4, "ring": 8, "thumb": 12}
 
 # Kinova
@@ -123,7 +122,7 @@ class ULITE6:
 
     IP = "192.168.1.153"
 
-    VR_FREQ = 240
+    VR_FREQ = VR_FREQ
 
     SCALE_FACTOR = 1000
 
@@ -134,16 +133,13 @@ class ULITE6:
 
 # Realman RM65 Bimanual Robot Constants
 class BIMANUAL_RM65:
-    VR_FREQ = 240
+    VR_FREQ = 30
 
-    class LEFT:
-        IP = "192.168.1.153"
-        HOME = [200, 0, 200, 3.1415926, 0, 0]
-        HOME_POSE_AA = [200, 0, 200, 3.1415926, 0, 0]
-        HOME_JS = [0.0, 0.173311, 0.555015, 0.0, 0.381703, 0.0, 0.0]
+    class L:
+        # HOME_POSE_AA = [0.201902, -0.264378, -0.213804, -1.55, 0.756, 2.25]
+        HOME_JS = [155, 98, 32, 126, -81, -63]
 
-    class RIGHT:
-        IP = "192.168.1.153"
-        HOME = [200, 0, 200, 3.1415926, 0, 0]
-        HOME_POSE_AA = [200, 0, 200, 3.1415926, 0, 0]
-        HOME_JS = [0.0, 0.173311, 0.555015, 0.0, 0.381703, 0.0, 0.0]
+    class R:
+        # HOME_POSE_AA = [-0.201902, -0.264378, -0.213804, -1.55, -0.756, -2.25]
+        # HOME_JS = [-155, -98, -32, -126, 81, 63]
+        HOME_JS = [25, 98, 32, 54, 81, 63]

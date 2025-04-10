@@ -1,14 +1,15 @@
-import cv2
-import time
-import zmq
-import pickle
-import numpy as np
 import base64
+import pickle
+import time
+
+import cv2
+import numpy as np
+import zmq
 
 
 class FrequencyTimer(object):
     def __init__(self, frequency_rate):
-        self.frame_time = 0.9995 / frequency_rate
+        self.frame_time = 0.99 / frequency_rate
 
     def start_loop(self):
         self.start_time = time.perf_counter()
@@ -76,3 +77,17 @@ class SocketChecker(object):
                     self._reinit_counter()
             else:
                 self.start_time = time.time()
+
+
+if __name__ == "__main__":
+    # test timer
+    timer = FrequencyTimer(30)
+
+    time_start = time.perf_counter()
+    for i in range(300):
+        timer.start_loop()
+        s = np.random.rand(1000, 1000) * np.random.randn(1000, 1000)
+        timer.end_loop()
+    time_end = time.perf_counter()
+
+    print("Time: ", time_end - time_start)

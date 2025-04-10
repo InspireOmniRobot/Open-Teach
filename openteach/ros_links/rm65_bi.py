@@ -1,17 +1,23 @@
-# import rospy
-import numpy as np
 import time
-from copy import deepcopy
-from xarm import XArmAPI
 from enum import Enum
-import math
-
-from openteach.constants import SCALE_FACTOR
+import numpy as np
+from Robotic_Arm.rm_robot_interface import (
+    Algo,
+    RoboticArm,
+    rm_thread_mode_e,
+    rm_inverse_kinematics_params_t,
+    rm_robot_arm_model_e,
+    rm_force_type_e,
+    rm_frame_t,
+)
 from scipy.spatial.transform import Rotation as R
 from openteach.constants import BIMANUAL_RM65
-from Robotic_Arm.rm_robot_interface import RoboticArm, rm_thread_mode_e
+import socket
+import json
+import logging
 
-robot = RoboticArm(rm_thread_mode_e.RM_TRIPLE_MODE_E)
+logging.basicConfig(level=logging.INFO, filename="rm65_bi.log")
+logger = logging.getLogger("RightArm")
 
 
 class RobotControlMode(Enum):
@@ -20,129 +26,172 @@ class RobotControlMode(Enum):
 
 
 # Wrapper for Realman
-class Robot(RoboticArm):
-    def __init__(self, ip, port, is_radian=True):
-        super(Robot, self).__init__(rm_thread_mode_e.RM_TRIPLE_MODE_E)
+class Robot:
+    def __init__(self, ip, port, arm_type):
+        self.arm_type = arm_type
+        # self.ratio = 1000
+        # self.arm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.arm_socket.connect((ip, port))
+        # 初始化算法的机械臂及末端型号
+        self.arm = RoboticArm(rm_thread_mode_e.RM_TRIPLE_MODE_E)
+        _handle = self.arm.rm_create_robot_arm(ip, port)
+        self.last_time = time.perf_counter()
 
-        _handle = self.rm_create_robot_arm(ip, port)
-        _software_info = self.rm_get_arm_software_info()
-
-        if _software_info[0] == 0:
-            print("\n================== Arm Software Information ==================")
-            print("Robot arm id", self._handle.id)
-            print(
-                "Algorithm Library Version: ",
-                _software_info[1]["algorithm_info"]["version"],
-            )
-            print(
-                "Control Layer Software Version: ",
-                _software_info[1]["ctrl_info"]["version"],
-            )
-            print(
-                "Dynamics Version: ", _software_info[1]["dynamic_info"]["model_version"]
-            )
-            print(
-                "Planning Layer Software Version: ",
-                _software_info[1]["plan_info"]["version"],
-            )
-            print("==============================================================\n")
+        if arm_type == "left":
+            self.constants = BIMANUAL_RM65.L
+        elif arm_type == "right":
+            self.constants = BIMANUAL_RM65.R
         else:
-            print(
-                "\nFailed to get arm software information, Error code: ",
-                _software_info[0],
-                "\n",
-            )
-            raise Exception("Failed to get Realman RM65 arm software information")
+            raise ValueError("Invalid arm type")
+
+        # _software_info = self.arm.rm_get_arm_software_info()
+
+        # if _software_info[0] == 0:
+        #     print("\n================== Arm Software Information ==================")
+        #     print("Robot arm id", _handle.id)
+        #     print(
+        #         "Algorithm Library Version: ",
+        #         _software_info[1]["algorithm_info"]["version"],
+        #     )
+        #     print(
+        #         "Control Layer Software Version: ",
+        #         _software_info[1]["ctrl_info"]["version"],
+        #     )
+        #     print("Dynamics Version: ", _software_info[1]["dynamic_info"]["model_version"])
+        #     print(
+        #         "Planning Layer Software Version: ",
+        #         _software_info[1]["plan_info"]["version"],
+        #     )
+        #     print("==============================================================\n")
+        # else:
+        #     raise Exception("Failed to get Realman RM65 arm software information, Error code: ", _software_info[0])
 
         # 设置机械臂为仿真模式
-        self.rm_set_arm_run_mode(0)
+        self.arm.rm_set_arm_run_mode(1)
+        self.arm.rm_set_self_collision_enable(True)
+
+        # algo_handle must be initialized after arm is initialized
+        self.algo_handle = Algo(
+            rm_robot_arm_model_e.RM_MODEL_RM_65_E, rm_force_type_e.RM_MODEL_RM_B_E
+        )
+        self.algo_handle.rm_algo_set_redundant_parameter_traversal_mode(False)
+        _, tool_frame = self.arm.rm_get_current_tool_frame()
+        self.algo_handle.rm_algo_set_toolframe(rm_frame_t(pose=tool_frame["pose"]))
+
+    # def scale_angle_up(self, angles):
+    #     return [int(i * self.ratio) for i in angles]
+
+    # def scale_angle_down(self, angles):
+    #     return [i / self.ratio for i in angles]
+
+    # def send_command(self, command):
+    #     data_json = json.dumps(command).encode("utf-8")
+    #     self.arm_socket.sendall(data_json)
+    #     response = self.arm_socket.recv(1024).decode("utf-8")  # 接收响应（可选）
+    #     # print("- - - - - - - - - - ")
+    #     # print(response)
+    #     # print(data_json)
+    #     # print("- - - - - - - - - - ")
+    #     logger.info(f"Send command: {command}")
+    #     logger.info(f"Response: {response}")
+    #     return json.loads(response)
 
     def reset(self):
-        # home=
-        self.rm_movel(joint=[0, 20, 70, 0, 90, 0], v=20, r=0, connect=0, block=0)
+        # home_js = self.scale_angle_up(self.constants.HOME_JS)
+        # command = {"command": "movej", "joint": home_js, "v": 5, "r": 0, "trajectory_connect": 0}
+        # self.send_command(command)
+        self.arm.rm_movej(self.constants.HOME_JS, v=5, r=0, connect=0, block=1)
 
+    def set_gripper_position(self, position):
+        # self.rm_set_gripper_position(position)
+        raise NotImplementedError(
+            "set_gripper_position() is not yet implemented for Realman RM65"
+        )
 
-# Wrapper for XArm
-# class Robot(XArmAPI):
-#     def __init__(self, ip, is_radian=True):
-#         super(Robot, self).__init__(port=ip, is_radian=is_radian, is_tool_coord=False)
-#         self.set_gripper_enable(True)
-#         self.ip = ip
+    def get_gripper_position(self):
+        # self.rm_get_gripper_position()
+        raise NotImplementedError(
+            "get_gripper_position() is not yet implemented for Realman RM65"
+        )
 
-#     def clear(self):
-#         self.clean_error()
-#         self.clean_warn()
-#         # self.motion_enable(enable=False)
-#         self.motion_enable(enable=True)
+    def get_current_joint_state(self):
+        code, joint_state = self.arm.rm_get_joint_degree()
+        assert code == 0, "Error getting joint_degree"
+        return joint_state[:6]
+        # command = {"command": "get_joint_degree"}
+        # while True:
+        #     resp = self.send_command(command)
+        #     joint = resp.get("joint", False)
+        #     if joint:
+        #         joint = self.scale_angle_down(joint)
+        #         return joint
+        #     else:
+        #         logger.info("Failed to get joint state")
 
-#     def set_mode_and_state(self, mode: RobotControlMode, state: int = 0):
-#         self.set_mode(mode.value)
-#         self.set_state(state)
-#         self.set_gripper_mode(0)  # Gripper is always in position control.
+    def get_current_pose_state(self):
+        current_joint_state = self.get_current_joint_state()
+        current_pose = self.algo_handle.rm_algo_forward_kinematics(
+            current_joint_state, flag=1
+        )
+        return np.array(current_pose, dtype=np.float32)
 
-#     def reset(self):
-#         # Clean error
-#         self.clear()
-#         print("SLow reset working")
-#         self.set_mode_and_state(RobotControlMode.CARTESIAN_CONTROL, 0)
-#         status = self.set_servo_angle(angle=ROBOT_HOME_JS, wait=True, is_radian=True, speed=math.radians(50))
-#         assert status == 0, "Failed to set robot at home joint position"
-#         self.set_mode_and_state(RobotControlMode.SERVO_CONTROL, 0)
-#         time.sleep(0.1)
+    def move_arm_cartesian(self, cartesian_pos):
+        cartesian_pos = np.round(cartesian_pos, 2)
+        """Move a joint in METERS !!!"""
+        current_joint = self.get_current_joint_state()
+        param = rm_inverse_kinematics_params_t(current_joint, cartesian_pos, flag=1)
+        code, joint = self.algo_handle.rm_algo_inverse_kinematics(param)
+        # logger.info(f"inverse kinematics: {current_joint}, {cartesian_pos}, {joint}")
+
+        if code != 0:
+            print(f"Failed to calculate inverse kinematics: {code}, {cartesian_pos}")
+        else:
+            print(
+                "Final joint: ", np.round(cartesian_pos, 2), np.array(joint, dtype=int)
+            )
+            # resp = self.send_command({"command": "movej_canfd", "joint": self.scale_angle_up(joint), "follow": False})
+            # assert resp["arm_err"] == 0, "Failed to move arm cartesian"
+            self.arm.rm_movej_canfd(joint, follow=False)
+            time_now = time.perf_counter()
+            frequency = 1 / (time_now - self.last_time)
+            logger.info(f"Frequency: {frequency} fps")
+            self.last_time = time_now
 
 
 class DexArmControl:
-    def __init__(self, ip, record_type=None):
-        # if pub_port is set to None it will mean that
-        # this will only be used for listening to franka and not commanding
-        # try:
-        #     rospy.init_node("dex_arm", disable_signals = True, anonymous = True)
-        # except:
-        #     pass
+    def __init__(self, ip, port, arm_type):
+        self.robot = Robot(ip, port, arm_type)
 
-        # self._init_franka_arm_control(record)
-        self.robot = Robot(ip, is_radian=True)
+    def move_arm_cartesian(self, cartesian_pos):
+        """Move a joint in METERS and AA !!!"""
+        return self.robot.move_arm_cartesian(cartesian_pos)
 
-    # Controller initializers
-    def _init_xarm_control(self):
-        self.robot.reset()
+    def move_arm_cartesian_quad(self, cartesian_pos):
+        """Move a joint in METERS and QUAD !!!"""
+        return self.robot.move_arm_cartesian(cartesian_pos, quad=True)
 
-        status, home_pose = self.robot.get_position_aa()
-        assert status == 0, "Failed to get robot position"
-        home_affine = self.robot_pose_aa_to_affine(home_pose)
-        # Initialize timestamp; used to send messages to the robot at a fixed frequency.
-        last_sent_msg_ts = time.time()
-
-        # Initialize the environment state action tuple.
-
-    # Rostopic callback functions
+    def move_arm_joint(self, joint_pos):
+        """Move a joint in DEGREE !!!"""
+        return self.robot.move_arm_joint(joint_pos)
 
     # State information functions
 
-    def get_arm_pose(self):
-        status, home_pose = self.robot.get_position_aa()
-        home_affine = self.robot_pose_aa_to_affine(home_pose)
-        return home_affine
+    # def get_arm_pose_affine(self):
+    #     home_pose = self.get_arm_position()
+    #     home_affine = self.robot_pose_aa_to_affine(home_pose)
+    #     return home_affine
 
-    def get_arm_position(self):
-        joint_state = np.array(self.robot.get_servo_angle()[1])
-        return joint_state
+    def get_arm_cartesian_position(self):
+        # return np.array([0, 0, 0, 0, 0, 0], dtype=np.float32)
+        return self.robot.get_current_pose_state()
 
-    def get_arm_velocity(self):
-        raise NotImplementedError(
-            "get_arm_velocity() is not implemented for Realman RM65"
-        )
-
-    def get_arm_torque(self):
-        raise NotImplementedError(
-            "get_arm_torque() is not implemented for Realman RM65"
-        )
-
-    def get_arm_cartesian_coords(self):
-        status, home_pose = self.robot.get_position_aa()
-        return home_pose
+    def get_arm_joint_position(self):
+        return self.robot.get_current_joint_state()
 
     def get_gripper_state(self):
+        raise NotImplementedError(
+            "get_gripper_state() is not yet implemented for Realman RM65"
+        )
         gripper_position = self.robot.get_gripper_position()
         gripper_pose = dict(
             position=np.array(gripper_position[1], dtype=np.float32).flatten(),
@@ -150,67 +199,58 @@ class DexArmControl:
         )
         return gripper_pose
 
-    def move_arm_joint(self, joint_angles):
-        self.robot.set_servo_angle(
-            joint_angles, wait=True, is_radian=True, mvacc=80, speed=10
-        )
-
-    def move_arm_cartesian(self, cartesian_pos, duration=3):
-        self.robot.set_servo_cartesian_aa(
-            cartesian_pos, wait=False, relative=False, mvacc=200, speed=50
-        )
-
-    def arm_control(self, cartesian_pose):
-        if self.robot.has_error:
-            self.robot.clear()
-            self.robot.set_mode_and_state(1)
-        self.robot.set_servo_cartesian_aa(
-            cartesian_pose, wait=False, relative=False, mvacc=200, speed=50
-        )
-
     def get_arm_joint_state(self):
-        joint_positions = np.array(self.robot.get_servo_angle()[1])
-        joint_state = dict(
-            position=np.array(joint_positions, dtype=np.float32), timestamp=time.time()
-        )
-        return joint_state
+        joint_positions = self.robot.get_current_joint_state()
+        return {
+            "position": joint_positions,
+            "timestamp": time.time(),
+        }
 
     def get_cartesian_state(self):
-        status, current_pos = self.robot.get_position_aa()
-        cartesian_state = dict(
-            position=np.array(current_pos[0:3], dtype=np.float32).flatten(),
-            orientation=np.array(current_pos[3:], dtype=np.float32).flatten(),
-            timestamp=time.time(),
-        )
-
-        return cartesian_state
+        current_pos = self.robot.get_current_pose_state()
+        return {
+            "position": current_pos[0:3],
+            "orientation": current_pos[3:],
+            "timestamp": time.time(),
+        }
 
     def home_arm(self):
-        self.move_arm_cartesian(BIMANUAL_RIGHT_HOME, duration=5)
+        self.robot.reset()
 
     def reset_arm(self):
         self.home_arm()
 
-    # Full robot commands
-    def move_robot(self, arm_angles):
-        self.robot.set_servo_angle(angle=arm_angles, is_radian=True)
-
     def home_robot(self):
         self.home_arm()  # For now we're using cartesian values
 
-    def set_gripper_status(self, position):
-        self.robot.set_gripper_position(position)
+    def move_robot(self, arm_angles):
+        # self.robot.move_arm_joint(arm_angles)
+        raise NotImplementedError("move_robot() is not implemented for Realman RM65")
+
+    def set_gripper_state(self, position):
+        # self.robot.set_gripper_position(position)
+        pass
+        # raise NotImplementedError("set_gripper_status() is not implemented for Realman RM65")
 
     def robot_pose_aa_to_affine(self, pose_aa: np.ndarray) -> np.ndarray:
         """Converts a robot pose in axis-angle format to an affine matrix.
         Args:
             pose_aa (list): [x, y, z, ax, ay, az] where (x, y, z) is the position and (ax, ay, az) is the axis-angle rotation.
-            x, y, z are in mm and ax, ay, az are in radians.
         Returns:
-            np.ndarray: 4x4 affine matrix [[R, t],[0, 1]]
+            np.ndarray: 4x4 affine matrix
         """
-
         rotation = R.from_rotvec(pose_aa[3:]).as_matrix()
-        translation = np.array(pose_aa[:3]) / SCALE_FACTOR
+        translation = pose_aa[:3]
 
-        return np.block([[rotation, translation[:, np.newaxis]], [0, 0, 0, 1]])
+        result = np.eye(4)
+        result[:3, :3] = rotation
+        result[:3, 3] = translation
+
+        return result
+
+
+# if quad:
+#     pos = cartesian_pos[:3] + self.arm.rm_algo_euler2quaternion(cartesian_pos[3:])
+#     print("Pos: ", pos)
+#     param = rm_inverse_kinematics_params_t(current_joint, pos, flag=0)
+# else:

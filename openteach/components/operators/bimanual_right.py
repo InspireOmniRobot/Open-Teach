@@ -1,25 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import zmq
+from copy import deepcopy as copy
 
+import matplotlib.pyplot as plt
+import numpy as np
+import zmq
 from mpl_toolkits.mplot3d import Axes3D
+from numpy.linalg import pinv
+from scipy.spatial.transform import Rotation, Slerp
+from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 
-from copy import deepcopy as copy
-from asyncio import threads
 from openteach.constants import *
-from openteach.utils.timer import FrequencyTimer
-from openteach.utils.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
-from openteach.utils.vectorops import *
-from openteach.utils.files import *
-
-# from openteach.robot.franka import FrankaArm
 from openteach.robot.bimanual import Bimanual
-from scipy.spatial.transform import Rotation, Slerp
-from .operator import Operator
-from scipy.spatial.transform import Rotation as R
-from numpy.linalg import pinv
+from openteach.utils.files import *
+from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
+from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 
@@ -90,7 +87,7 @@ class BimanualArmOperator(Operator):
         # Get the initial pose of the robot
         home_pose = np.array(self.robot.get_cartesian_position())
         self.robot_init_H = self.robot_pose_aa_to_affine(home_pose)
-        self._timer = FrequencyTimer(BIMANUAL_VR_FREQ)
+        self._timer = FrequencyTimer(VR_FREQ)
 
         # Use the filter
         self.use_filter = use_filter
@@ -157,7 +154,7 @@ class BimanualArmOperator(Operator):
             return None
         return np.asanyarray(data).reshape(4, 3)
 
-    # Function to get the resolution scale mode
+    # Get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
         res_scale = np.asanyarray(data).reshape(1)[
@@ -165,7 +162,7 @@ class BimanualArmOperator(Operator):
         ]  # Make sure this data is one dimensional
         return res_scale
 
-    # Function to get the arm teleop state from the hand keypoints
+    # Get the arm teleop state from the hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
         pause_state, pause_status, pause_right = (
             self.get_pause_state_from_hand_keypoints()
@@ -174,7 +171,7 @@ class BimanualArmOperator(Operator):
 
         return pause_state, pause_status, pause_right
 
-    # Function to turn a frame to a homogeneous matrix
+    # Convert frame to homogeneous matrix
     def _turn_frame_to_homo_mat(self, frame):
         t = frame[0]
         R = frame[1:]
@@ -186,7 +183,7 @@ class BimanualArmOperator(Operator):
 
         return homo_mat
 
-    # Function to turn homogenous matrix to cartesian vector
+    # Convert homogeneous matrix to cartesian coords (position vector+axis angles)
     def _homo2cart(self, homo_mat):
         # Here we will use the resolution scale to set the translation resolution
         t = homo_mat[:3, 3]

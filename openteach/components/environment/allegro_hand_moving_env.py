@@ -82,25 +82,21 @@ class AllegroHandMovingEnv(Hand_Env):
         )
 
         # Publisher for Joint Angle
-
         self.joint_angle_publisher = ZMQKeypointPublisher(
             host=host, port=jointanglepublishport
         )
 
         # Publisher for Actual Current Joint Angles
-
         self.actualanglepublisher = ZMQKeypointPublisher(
             host=host, port=actualanglepublishport
         )
 
         # Publisher for calculated angles from teleoperator.
-
         self.joint_angle_subscriber = ZMQKeypointSubscriber(
             host=host, port=jointanglesubscribeport, topic="desired_angles"
         )
 
         # Publisher for endeffector Positions
-
         self.endeff_publisher = ZMQKeypointPublisher(
             host=host, port=endeff_publish_port
         )

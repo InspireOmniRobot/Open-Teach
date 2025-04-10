@@ -114,6 +114,11 @@ class TeleOperator(ProcessInstantiator):
     # Function to start the components
     def _start_component(self, configs):
         component = hydra.utils.instantiate(configs)
+        # print("--------------------------------")
+        # from pprint import pprint
+        # pprint(component)
+        # pprint(dict(configs))
+        # print("--------------------------------")
         component.stream()
 
     # Function to start the detector component
