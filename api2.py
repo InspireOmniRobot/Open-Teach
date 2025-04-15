@@ -5,14 +5,16 @@ import numpy as np
 import json
 from Robotic_Arm.rm_robot_interface import *
 
-# left: 192.168.2.18
+"""
+睿尔曼机械臂测试
+"""
+
 LEFT_IP = "192.168.2.21"
 # HOME_LEFT_POSE = [0.0875, -0.1998, -0.3511, -2.923, 0.034, 1.558]
 # HOME_LEFT_JOINT = [140, 115, 45, 110, 20, -55]
 HOME_LEFT_POSE = [0.201902, -0.264378, -0.213804, -1.55, 0.756, 2.25]
 HOME_LEFT_JOINT = [-25, -98, -32, -54, -81, -63]
 
-# right: 192.168.2.19
 RIGHT_IP = "192.168.2.19"
 # HOME_RIGHT_POSE = [-0.0875, -0.1998, -0.3511, -2.923, -0.034, -1.558]
 # HOME_RIGHT_JOINT = [-140, -115, -45, -110, -20, 55]
