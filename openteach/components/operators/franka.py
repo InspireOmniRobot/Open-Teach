@@ -1,20 +1,20 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import zmq
+from copy import deepcopy as copy
 
+import matplotlib.pyplot as plt
+import numpy as np
+import zmq
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.spatial.transform import Rotation, Slerp
 from tqdm import tqdm
 
-from copy import deepcopy as copy
 from openteach.constants import *
-from openteach.utils.timer import FrequencyTimer
-from openteach.utils.network import ZMQKeypointSubscriber
-from openteach.utils.vectorops import *
-from openteach.utils.files import *
 from openteach.robot.franka import FrankaArm
-from scipy.spatial.transform import Rotation, Slerp
-from .operator import Operator
+from openteach.utils.files import *
+from openteach.utils.network import ZMQKeypointSubscriber
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
+from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 

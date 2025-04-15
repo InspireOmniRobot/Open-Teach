@@ -1,31 +1,33 @@
+from collections import deque
 from copy import deepcopy as copy
 
-# Holo-bot Components
-from openteach.utils.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
-from .operator import Operator
+import gym
+
+# Isaac Gym components
+from isaacgym import gymapi, gymtorch, gymutil
+from isaacgym.torch_utils import *
 from shapely.geometry import Point, Polygon
 from shapely.ops import nearest_points
-from .calibrators.allegro import OculusThumbBoundCalibrator
+
+from openteach.components.recorders import *
+from openteach.components.sensors import *
+from openteach.constants import *
 
 # from openteach.robot.allegro.allegro import AllegroHand
 from openteach.robot.allegro.allegro_retargeters import (
-    AllegroKDLControl,
     AllegroJointControl,
+    AllegroKDLControl,
 )
 from openteach.utils.files import *
-from openteach.utils.vectorops import coord_in_bound
-from openteach.utils.timer import FrequencyTimer
-from openteach.constants import *
-from openteach.components.recorders import *
-from openteach.components.sensors import *
-from openteach.utils.images import rotate_image, rescale_image
-from collections import deque
+from openteach.utils.images import rescale_image, rotate_image
 
-# Isaac Gym components
-from isaacgym import gymapi, gymutil
-import gym
-from isaacgym import gymtorch
-from isaacgym.torch_utils import *
+# Holo-bot Components
+from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import coord_in_bound
+
+from .calibrators.allegro import OculusThumbBoundCalibrator
+from .operator import Operator
 
 
 class AllegroHandSimOperator(Operator):

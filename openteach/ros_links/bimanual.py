@@ -1,14 +1,15 @@
 # import rospy
-import numpy as np
+import math
 import time
 from copy import deepcopy as copy
-from xarm import XArmAPI
 from enum import Enum
-import math
 
-from openteach.constants import SCALE_FACTOR
+import numpy as np
 from scipy.spatial.transform import Rotation as R
+from xarm import XArmAPI
+
 from openteach.constants import *
+from openteach.constants import SCALE_FACTOR
 
 
 class RobotControlMode(Enum):

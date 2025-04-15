@@ -1,10 +1,12 @@
 import hydra
 import numpy as np
-from .plotters.xela_plotter import *
 from get_xela_values import (
     XelaCurvedSensorControl,
 )  # Python path is set to that directory
+
 from openteach.components import Component
+
+from .plotters.xela_plotter import *
 
 
 class XelaVisualizer(Component):

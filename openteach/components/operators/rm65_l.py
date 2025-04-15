@@ -40,8 +40,8 @@ def transformation_cal(H_HI_HH, H_HT_HH, H_RI_RH):
 
     # 分别定义旋转和平移的变换矩阵
     H_R_V = np.array(
-        [
-            [1, 0, 0, 0],  # 旋转变换矩阵，保持原方向
+        [  # 旋转变换矩阵
+            [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1],
@@ -50,7 +50,7 @@ def transformation_cal(H_HI_HH, H_HT_HH, H_RI_RH):
     )
 
     H_T_V = np.array(
-        [  # 平移变换矩阵，保持原方向
+        [  # 平移变换矩阵
             [1, 0, 0, 0],
             [0, 0, 1, 0],
             [0, -1, 0, 0],
@@ -63,12 +63,9 @@ def transformation_cal(H_HI_HH, H_HT_HH, H_RI_RH):
     H_HT_HI_r = (pinv(H_R_V) @ H_HT_HI @ H_R_V)[:3, :3]
     H_HT_HI_t = (pinv(H_T_V) @ H_HT_HI @ H_T_V)[:3, 3]
 
-    # target_rotation = H_RI_RH[:3, :3] @ H_HT_HI_r
-    # target_translation = H_RI_RH[:3, 3] + H_HT_HI_t
-
     H_RT_RH = np.zeros((4, 4), dtype=np.float32)
-    H_RT_RH[:3, :3] = H_RI_RH[:3, :3] @ H_HT_HI_r  # target_rotation
-    H_RT_RH[:3, 3] = H_RI_RH[:3, 3] + H_HT_HI_t  # target_translation
+    H_RT_RH[:3, :3] = H_RI_RH[:3, :3] @ H_HT_HI_r  # target_rotation = H_RI_RH[:3, :3] @ H_HT_HI_r
+    H_RT_RH[:3, 3] = H_RI_RH[:3, 3] + H_HT_HI_t  # target_translation = H_RI_RH[:3, 3] + H_HT_HI_t
     H_RT_RH[3, 3] = 1.0
 
     return H_RT_RH
@@ -129,8 +126,8 @@ class RM65LOperator(Operator):
             host=host, port=arm_resolution_port, topic="button"
         )
         # Define Robot object
-        # self._robot = RM65L(robot_ip=robot_ip, robot_port=robot_port)
-        # self.robot.reset()
+        self._robot = RM65L(robot_ip=robot_ip, robot_port=robot_port)
+        self.robot.reset()
 
         # Get the initial pose of the robot
         home_pose = self.robot.get_cartesian_position()

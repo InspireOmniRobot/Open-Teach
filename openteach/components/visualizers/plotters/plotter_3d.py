@@ -1,7 +1,9 @@
-from openteach.constants import *
-from .plotter import Plotter
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+from openteach.constants import *
+
+from .plotter import Plotter
 
 
 class PlotHand3D(Plotter):

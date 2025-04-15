@@ -1,4 +1,5 @@
 import cv2
+
 from openteach.components import Component
 from openteach.constants import *
 from openteach.utils.images import *

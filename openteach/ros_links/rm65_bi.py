@@ -1,20 +1,22 @@
+import json
+import logging
+import socket
 import time
 from enum import Enum
+
 import numpy as np
 from Robotic_Arm.rm_robot_interface import (
     Algo,
     RoboticArm,
-    rm_thread_mode_e,
-    rm_inverse_kinematics_params_t,
-    rm_robot_arm_model_e,
     rm_force_type_e,
     rm_frame_t,
+    rm_inverse_kinematics_params_t,
+    rm_robot_arm_model_e,
+    rm_thread_mode_e,
 )
 from scipy.spatial.transform import Rotation as R
+
 from openteach.constants import BIMANUAL_RM65
-import socket
-import json
-import logging
 
 logging.basicConfig(level=logging.INFO, filename="rm65_bi.log")
 logger = logging.getLogger("RightArm")

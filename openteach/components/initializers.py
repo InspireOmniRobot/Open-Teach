@@ -1,13 +1,16 @@
 import os
-import hydra
 from abc import ABC
-from .recorders.image import RGBImageRecorder, DepthImageRecorder, FishEyeImageRecorder
-from .recorders.robot_state import RobotInformationRecord
-from .recorders.sim_state import SimInformationRecord
-from .recorders.sensors import XelaSensorRecorder
-from .sensors import *
 from multiprocessing import Process
+
+import hydra
+
 from openteach.constants import *
+
+from .recorders.image import DepthImageRecorder, FishEyeImageRecorder, RGBImageRecorder
+from .recorders.robot_state import RobotInformationRecord
+from .recorders.sensors import XelaSensorRecorder
+from .recorders.sim_state import SimInformationRecord
+from .sensors import *
 
 
 class ProcessInstantiator(ABC):

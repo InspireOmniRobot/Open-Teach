@@ -1,12 +1,11 @@
-import rospy
-import numpy as np
 import time
-
-from sensor_msgs.msg import JointState
-from geometry_msgs.msg import PoseStamped
-from kinova_arm.controller import KinovaController
 from copy import deepcopy as copy
 
+import numpy as np
+import rospy
+from geometry_msgs.msg import PoseStamped
+from kinova_arm.controller import KinovaController
+from sensor_msgs.msg import JointState
 
 KINOVA_JOINT_STATE_TOPIC = "/j2n6s300_driver/out/joint_state"
 KINOVA_CARTESIAN_STATE_TOPIC = "/j2n6s300_driver/out/tool_pose"

@@ -1,7 +1,9 @@
 import os
 import pickle
-import yaml
+
 import numpy as np
+import yaml
+
 import openteach
 
 

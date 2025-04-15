@@ -1,8 +1,10 @@
 import numpy as np
-from .plotters.plotter_2d import *
+
 from openteach.components import Component
 from openteach.constants import OCULUS_NUM_KEYPOINTS
 from openteach.utils.network import ZMQKeypointSubscriber
+
+from .plotters.plotter_2d import *
 
 
 class Hand2DVisualizer(Component):

@@ -1,12 +1,15 @@
 import os
+
+import h5py
 import numpy as np
 from tqdm import tqdm
-from .sampler import Sampler
-from openteach.robot.allegro.allegro_kdl import AllegroKDL
-from openteach.utils.vectorops import get_distance
+
 from openteach.constants import *
+from openteach.robot.allegro.allegro_kdl import AllegroKDL
 from openteach.robot.kinova import KinovaArm
-import h5py
+from openteach.utils.vectorops import get_distance
+
+from .sampler import Sampler
 
 
 class AllegroSampler(Sampler):

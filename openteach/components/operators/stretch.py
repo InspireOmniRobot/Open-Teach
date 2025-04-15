@@ -1,26 +1,26 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import zmq
-
-from mpl_toolkits.mplot3d import Axes3D
-from tqdm import tqdm
-
 from copy import deepcopy as copy
-from openteach.constants import *
-from openteach.utils.timer import FrequencyTimer
-from openteach.utils.network import ZMQKeypointSubscriber
-from openteach.utils.vectorops import *
-from openteach.utils.files import *
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import zmq
+from mpl_toolkits.mplot3d import Axes3D
 
 # from openteach.robot.stretch import Stretch
 from scipy.spatial.transform import Rotation, Slerp
-from .operator import Operator
+from tqdm import tqdm
+
+from openteach.constants import *
+from openteach.utils.files import *
+from openteach.utils.network import ZMQKeypointSubscriber
 
 # from stretch_visual_servoing.normalized_velocity_control import NormalizedVelocityControl
 from openteach.utils.publisher import ImitiationPolicyPublisher
 from openteach.utils.subscriber import ImagePolicySubscriber
-import torch
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
+from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 

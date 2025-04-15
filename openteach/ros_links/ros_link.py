@@ -1,7 +1,8 @@
-import numpy as np
 import time
-import rospy
 from copy import deepcopy as copy
+
+import numpy as np
+import rospy
 
 
 class DexArmControl:

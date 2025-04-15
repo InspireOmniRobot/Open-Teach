@@ -1,12 +1,11 @@
-import rospy
-import numpy as np
 import time
-
-from sensor_msgs.msg import JointState
-from geometry_msgs.msg import PoseStamped
-from allegro_hand.controller import AllegroController
 from copy import deepcopy as copy
 
+import numpy as np
+import rospy
+from allegro_hand.controller import AllegroController
+from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import JointState
 
 ALLEGRO_JOINT_STATE_TOPIC = "/allegroHand/joint_states"
 ALLEGRO_COMMANDED_JOINT_STATE_TOPIC = "/allegroHand/commanded_joint_states"

@@ -1,15 +1,15 @@
 # import rospy
-import numpy as np
+import math
 import time
 from copy import deepcopy as copy
 from enum import Enum
-import math
 
-from openteach.constants import SCALE_FACTOR
-from scipy.spatial.transform import Rotation as R
-from openteach.constants import *
-import time
+import numpy as np
 import stretch_body.robot
+from scipy.spatial.transform import Rotation as R
+
+from openteach.constants import *
+from openteach.constants import SCALE_FACTOR
 
 
 class DexArmControl:

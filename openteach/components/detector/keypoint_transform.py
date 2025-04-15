@@ -1,14 +1,16 @@
-import numpy as np
 from copy import deepcopy as copy
+
+import numpy as np
+
 from openteach.components import Component
 from openteach.constants import *
-from openteach.utils.vectorops import *
 from openteach.utils.network import (
+    ZMQButtonFeedbackSubscriber,
     ZMQKeypointPublisher,
     ZMQKeypointSubscriber,
-    ZMQButtonFeedbackSubscriber,
 )
 from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
 
 class TransformHandPositionCoords(Component):

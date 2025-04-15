@@ -1,21 +1,21 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import zmq
+from copy import deepcopy as copy
 
+import matplotlib.pyplot as plt
+import numpy as np
+import robosuite.utils.transform_utils as T
+import zmq
+from scipy.spatial.transform import Rotation, Slerp
+from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 
-from copy import deepcopy as copy
 from openteach.constants import *
-from openteach.utils.timer import FrequencyTimer
-from openteach.utils.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
-from openteach.utils.vectorops import *
 from openteach.utils.files import *
-from scipy.spatial.transform import Rotation, Slerp
-from .operator import Operator
-from .calibrators.allegro import OculusThumbBoundCalibrator
+from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from openteach.utils.timer import FrequencyTimer
+from openteach.utils.vectorops import *
 
-import robosuite.utils.transform_utils as T
-from scipy.spatial.transform import Rotation as R
+from .calibrators.allegro import OculusThumbBoundCalibrator
+from .operator import Operator
 
 np.set_printoptions(precision=2, suppress=True)
 

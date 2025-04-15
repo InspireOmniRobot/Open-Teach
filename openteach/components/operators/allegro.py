@@ -1,19 +1,21 @@
 from copy import deepcopy as copy
-from openteach.utils.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
-from .operator import Operator
 
 from shapely.geometry import Point, Polygon
 from shapely.ops import nearest_points
-from .calibrators.allegro import OculusThumbBoundCalibrator
+
+from openteach.constants import *
 from openteach.robot.allegro.allegro import AllegroHand
 from openteach.robot.allegro.allegro_retargeters import (
-    AllegroKDLControl,
     AllegroJointControl,
+    AllegroKDLControl,
 )
 from openteach.utils.files import *
-from openteach.utils.vectorops import coord_in_bound
+from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
 from openteach.utils.timer import FrequencyTimer
-from openteach.constants import *
+from openteach.utils.vectorops import coord_in_bound
+
+from .calibrators.allegro import OculusThumbBoundCalibrator
+from .operator import Operator
 
 
 class AllegroHandOperator(Operator):

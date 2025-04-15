@@ -1,10 +1,12 @@
 import os
+from abc import ABC, abstractmethod
+
 import cv2
 import h5py
 import numpy as np
-from abc import ABC, abstractmethod
-from openteach.utils.files import get_pickle_data
+
 from openteach.constants import *
+from openteach.utils.files import get_pickle_data
 
 
 class Sampler(ABC):

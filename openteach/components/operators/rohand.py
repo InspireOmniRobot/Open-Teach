@@ -1,6 +1,7 @@
 from copy import deepcopy as copy
 
 import numpy as np
+from numba import njit
 from scipy.spatial.transform import Rotation, Slerp
 from shapely.geometry import Point, Polygon
 from shapely.ops import nearest_points
@@ -11,9 +12,9 @@ from openteach.utils.files import *
 from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
 from openteach.utils.timer import FrequencyTimer
 from openteach.utils.vectorops import coord_in_bound
+
 from .calibrators.allegro import OculusThumbBoundCalibrator
 from .operator import Operator
-from numba import njit
 
 np.set_printoptions(precision=2, suppress=True)
 

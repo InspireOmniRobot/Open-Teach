@@ -1,6 +1,8 @@
-from ikpy import chain
-import numpy as np
 from copy import deepcopy as copy
+
+import numpy as np
+from ikpy import chain
+
 from openteach.utils.files import *
 
 

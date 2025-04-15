@@ -1,9 +1,12 @@
 import re
-from openteach.ros_links.ulite6_control import DexArmControl
-from .robot import RobotWrapper
-from openteach.utils.network import ZMQKeypointSubscriber
-import numpy as np
 import time
+
+import numpy as np
+
+from openteach.ros_links.ulite6_control import DexArmControl
+from openteach.utils.network import ZMQKeypointSubscriber
+
+from .robot import RobotWrapper
 
 
 class ULite6Arm(RobotWrapper):

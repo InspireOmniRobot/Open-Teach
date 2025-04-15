@@ -1,8 +1,9 @@
-import numpy as np
 import time
 
+import numpy as np
 from pymodbus import FramerType
 from pymodbus.client import ModbusSerialClient
+
 import openteach.ros_links.roh_registers_v1 as roh
 
 COM_PORT = "/dev/ttyUSB0"
@@ -23,7 +24,9 @@ class DexArmControl:
         self.client = ModbusSerialClient(COM_PORT, framer=FramerType.RTU, baudrate=115200)
         assert self.client.connect()
         self.client.write_registers(
-            roh.ROH_FINGER_POS_TARGET0, values=ROHAND_ORIGINAL_HOME_VALUES, slave=NODE_ID
+            roh.ROH_FINGER_POS_TARGET0,
+            values=ROHAND_ORIGINAL_HOME_VALUES,
+            slave=NODE_ID,
         )
 
     def get_hand_position(self):

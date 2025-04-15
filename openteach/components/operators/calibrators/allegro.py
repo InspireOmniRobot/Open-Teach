@@ -1,5 +1,7 @@
 import sys
+
 import numpy as np
+
 from openteach.constants import *
 from openteach.utils.files import *
 from openteach.utils.network import ZMQKeypointSubscriber

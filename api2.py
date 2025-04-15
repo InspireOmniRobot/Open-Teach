@@ -1,8 +1,9 @@
-from pprint import pprint
-import socket
-from turtle import home
-import numpy as np
 import json
+import socket
+from pprint import pprint
+from turtle import home
+
+import numpy as np
 from Robotic_Arm.rm_robot_interface import *
 
 """
