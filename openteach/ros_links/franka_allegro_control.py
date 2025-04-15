@@ -183,9 +183,7 @@ class DexArmControl:
     def get_arm_pose(self):
         pose = copy(self.franka.get_pose())
 
-        pose_state = dict(
-            position=np.array(pose, dtype=np.float32), timestamp=time.time()
-        )
+        pose_state = dict(position=np.array(pose, dtype=np.float32), timestamp=time.time())
 
         return pose_state
 
@@ -245,11 +243,7 @@ class DexArmControl:
         debug_quat_diff = transform_utils.quat_multiply(
             last_pose[3:], transform_utils.quat_inverse(cartesian_pos[3:])
         )
-        angle_diff = (
-            180
-            * np.linalg.norm(transform_utils.quat2axisangle(debug_quat_diff))
-            / np.pi
-        )
+        angle_diff = 180 * np.linalg.norm(transform_utils.quat2axisangle(debug_quat_diff)) / np.pi
         print(
             "Absolute Pose Error: {}, Angle Difference: {}".format(
                 np.abs(pose_error[:3]), angle_diff

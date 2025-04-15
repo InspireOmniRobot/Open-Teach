@@ -12,6 +12,12 @@ Open Teach consists of two parts.
 
 - [x] Policy training for various dexterous manipulation tasks across different robots and simulations.
 
+### Code format
+
+```bash
+ruff format . --line-length=100
+```
+
 ### VR Code and User Interface
 
 Read VR specific information, User Interface and APK files [here](/docs/vr.md)

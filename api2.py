@@ -53,9 +53,7 @@ print(result)
 # print(resp)
 
 # 初始化算法的机械臂及末端型号
-algo_handle = Algo(
-    rm_robot_arm_model_e.RM_MODEL_RM_65_E, rm_force_type_e.RM_MODEL_RM_B_E
-)
+algo_handle = Algo(rm_robot_arm_model_e.RM_MODEL_RM_65_E, rm_force_type_e.RM_MODEL_RM_B_E)
 algo_handle.rm_algo_set_redundant_parameter_traversal_mode(False)
 
 

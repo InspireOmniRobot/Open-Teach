@@ -24,9 +24,7 @@ class ImitiationPolicyPublisher:
         self.gripper_publisher = rospy.Publisher(
             GRIPPER_PUBLISHER_TOPIC, Float64MultiArray, queue_size=1
         )
-        self.home_publisher = rospy.Publisher(
-            HOME_PUBLISHER_TOPIC, Float64MultiArray, queue_size=1
-        )
+        self.home_publisher = rospy.Publisher(HOME_PUBLISHER_TOPIC, Float64MultiArray, queue_size=1)
         self.home_params_publisher = rospy.Publisher(
             HOME_PARAMS_TOPIC, Float64MultiArray, queue_size=1
         )

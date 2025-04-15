@@ -100,9 +100,7 @@ class FrankaArmOperator(Operator):
     # Get the hand frame
     def _get_hand_frame(self):
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if not data is None:
                 break
         if data is None:
@@ -112,9 +110,7 @@ class FrankaArmOperator(Operator):
     # Get the resolution scale mode (High or Low)
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
 
     # Get the teleop state (Pause or Continue)
@@ -186,12 +182,9 @@ class FrankaArmOperator(Operator):
         # See if there is a reset in the teleop
         new_arm_teleop_state = self._get_arm_teleop_state()
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()  # Should get the hand frame
         self.arm_teleop_state = new_arm_teleop_state
@@ -226,9 +219,7 @@ class FrankaArmOperator(Operator):
             ]
         )
 
-        H_HT_HI = (
-            np.linalg.pinv(H_HI_HH) @ H_HT_HH
-        )  # Homo matrix that takes P_HT to P_HI
+        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
         H_RT_RH = (
             H_RI_RH @ H_A_R @ H_HT_HI @ np.linalg.pinv(H_A_R)
         )  # Homo matrix that takes P_RT to P_RH

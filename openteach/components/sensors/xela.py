@@ -77,15 +77,11 @@ class XelaSensors(Component):
 class XelaCurvedSensors(Component):
     def __init__(self, init_duration):
         self._controller = XelaCurvedSensorControl()
-        self._palm_bias_values = np.zeros(
-            (XELA_PALM_NUM_SENSORS, XELA_PALM_NUM_TAXELS, 3)
-        )
+        self._palm_bias_values = np.zeros((XELA_PALM_NUM_SENSORS, XELA_PALM_NUM_TAXELS, 3))
         self._fingertip_bias_values = np.zeros(
             (XELA_FINGERTIP_NUM_SENSORS, XELA_FINGERTIP_NUM_TAXELS, 3)
         )
-        self._finger_bias_values = np.zeros(
-            (XELA_FINGER_NUM_SENSORS, XELA_FINGER_NUM_TAXELS, 3)
-        )
+        self._finger_bias_values = np.zeros((XELA_FINGER_NUM_SENSORS, XELA_FINGER_NUM_TAXELS, 3))
         self._bias_duration = init_duration  # Wait 3 seconds for finding the average
         self.timer = FrequencyTimer(XELA_FPS)
         self._set_bias()
@@ -155,10 +151,8 @@ class XelaCurvedSensors(Component):
         ):
             normalized_state = dict(
                 palm_sensor_values=curr_sensor_palm_values - self._palm_bias_values,
-                fingertip_sensor_values=curr_sensor_fingertip_values
-                - self._fingertip_bias_values,
-                finger_sensor_values=curr_sensor_finger_values
-                - self._finger_bias_values,
+                fingertip_sensor_values=curr_sensor_fingertip_values - self._fingertip_bias_values,
+                finger_sensor_values=curr_sensor_finger_values - self._finger_bias_values,
                 timestamp=timestamp,
             )
             return normalized_state

@@ -122,9 +122,7 @@ class KinovaArmOperator(Operator):
     # Get the hand frame
     def _get_hand_frame(self):
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if not data is None:
                 break
         if data is None:
@@ -134,9 +132,7 @@ class KinovaArmOperator(Operator):
     # Get the resolution scale mode (High or Low)
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
 
     # Get the teleop state (Pause or Continue)
@@ -152,9 +148,7 @@ class KinovaArmOperator(Operator):
         return commanded_robot_position - current_robot_position
 
     # Get the rotation angular displacement
-    def _get_rotation_angles(
-        self, robot_target_orientation, current_robot_rotation_values
-    ):
+    def _get_rotation_angles(self, robot_target_orientation, current_robot_rotation_values):
         # Calculating the angular displacement between the target hand frame and the current robot frame#
         target_rotation_state = Rotation.from_quat(robot_target_orientation)
         robot_rotation_state = Rotation.from_quat(current_robot_rotation_values)
@@ -170,9 +164,7 @@ class KinovaArmOperator(Operator):
         return angular_displacement
 
     # Get the displacement vector
-    def _get_displacement_vector(
-        self, commanded_robot_position, current_robot_position
-    ):
+    def _get_displacement_vector(self, commanded_robot_position, current_robot_position):
         commanded_robot_pose = np.zeros(6)
         # Transformation from translation
         commanded_robot_pose[:3] = (
@@ -252,12 +244,9 @@ class KinovaArmOperator(Operator):
         # See if there is a reset in the teleop
         new_arm_teleop_state = self._get_arm_teleop_state()
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
         if moving_hand_frame is None:
@@ -291,9 +280,7 @@ class KinovaArmOperator(Operator):
         H_RI_RH = copy(self.robot_init_H)  # Homo matrix that takes P_RI to P_RH
 
         # Find the relative transformation in human hand space.
-        H_HT_HI = (
-            np.linalg.pinv(H_HI_HH) @ H_HT_HH
-        )  # Homo matrix that takes P_HT to P_HI
+        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
 
         # Transformation matrix
         H_R_V = [[0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
@@ -312,9 +299,7 @@ class KinovaArmOperator(Operator):
             final_pose = self.comp_filter(final_pose)
 
         # Calculated velocity
-        calculated_velocity = self._get_displacement_vector(
-            final_pose, current_robot_position
-        )
+        calculated_velocity = self._get_displacement_vector(final_pose, current_robot_position)
         averaged_velocity = moving_average(
             calculated_velocity, self.moving_Average_queue, self.moving_average_limit
         )

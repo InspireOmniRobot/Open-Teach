@@ -50,9 +50,7 @@ class AllegroHandOperator(Operator):
         self._calibrate_bounds()
 
         # Getting the bounds for the allegro hand
-        allegro_bounds_path = get_path_in_package(
-            "components/operators/configs/allegro.yaml"
-        )
+        allegro_bounds_path = get_path_in_package("components/operators/configs/allegro.yaml")
         self.allegro_bounds = get_yaml_data(allegro_bounds_path)
 
         self._timer = FrequencyTimer(VR_FREQ)
@@ -97,9 +95,7 @@ class AllegroHandOperator(Operator):
         raw_keypoints = self.transformed_hand_keypoint_subscriber.recv_keypoints()
         return dict(
             index=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["index"]]]),
-            middle=np.vstack(
-                [raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["middle"]]]
-            ),
+            middle=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["middle"]]]),
             ring=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["ring"]]]),
             thumb=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["thumb"]]]),
         )
@@ -111,9 +107,7 @@ class AllegroHandOperator(Operator):
                 return self.fingertip_solver.thumb_motion_2D(
                     hand_coordinates=thumb_keypoints,
                     xy_hand_bounds=thumb_bounds[:4],
-                    yz_robot_bounds=self.allegro_bounds["thumb_bounds"][idx][
-                        "projective_bounds"
-                    ],
+                    yz_robot_bounds=self.allegro_bounds["thumb_bounds"][idx]["projective_bounds"],
                     robot_x_val=self.allegro_bounds["x_coord"],
                     moving_avg_arr=self.moving_average_queues["thumb"],
                     curr_angles=curr_angles,
@@ -157,10 +151,7 @@ class AllegroHandOperator(Operator):
         desired_joint_angles = copy(self.robot.get_joint_position())
 
         # Movement for the index finger with option to freeze the finger
-        if (
-            not self.finger_configs["freeze_index"]
-            and not self.finger_configs["no_index"]
-        ):
+        if not self.finger_configs["freeze_index"] and not self.finger_configs["no_index"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="index",
                 finger_joint_coords=hand_keypoints["index"],
@@ -174,10 +165,7 @@ class AllegroHandOperator(Operator):
             pass
 
         # Movement for the middle finger option to freeze the finger
-        if (
-            not self.finger_configs["freeze_middle"]
-            and not self.finger_configs["no_middle"]
-        ):
+        if not self.finger_configs["freeze_middle"] and not self.finger_configs["no_middle"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="middle",
                 finger_joint_coords=hand_keypoints["middle"],
@@ -191,10 +179,7 @@ class AllegroHandOperator(Operator):
             pass
 
         # Movement for the ring finger option to freeze the finger
-        if (
-            not self.finger_configs["freeze_ring"]
-            and not self.finger_configs["no_ring"]
-        ):
+        if not self.finger_configs["freeze_ring"] and not self.finger_configs["no_ring"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="ring",
                 finger_joint_coords=hand_keypoints["ring"],
@@ -208,10 +193,7 @@ class AllegroHandOperator(Operator):
             pass
 
         # Movement for the thumb finger with option to freeze the finger
-        if (
-            not self.finger_configs["freeze_thumb"]
-            and not self.finger_configs["no_thumb"]
-        ):
+        if not self.finger_configs["freeze_thumb"] and not self.finger_configs["no_thumb"]:
             desired_joint_angles = self.thumb_angle_calculator(
                 hand_keypoints["thumb"][-1], desired_joint_angles
             )  # Passing just the tip coordinates

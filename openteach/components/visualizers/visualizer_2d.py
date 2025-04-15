@@ -6,9 +6,7 @@ from openteach.utils.network import ZMQKeypointSubscriber
 
 
 class Hand2DVisualizer(Component):
-    def __init__(
-        self, host, transformed_keypoint_port, oculus_feedback_port, display_plot
-    ):
+    def __init__(self, host, transformed_keypoint_port, oculus_feedback_port, display_plot):
         self.notify_component_start("hand 2D plotter")
         self.subscriber = ZMQKeypointSubscriber(
             host=host, port=transformed_keypoint_port, topic="transformed_hand_coords"

@@ -9,19 +9,13 @@ from openteach.utils.timer import FrequencyTimer
 
 # This class is used to transform the left hand coordinates from the VR to the robot frame.
 class TransformLeftHandPositionCoords(Component):
-    def __init__(
-        self, host, keypoint_port, transformation_port, moving_average_limit=1
-    ):
+    def __init__(self, host, keypoint_port, transformation_port, moving_average_limit=1):
         self.notify_component_start("keypoint position transform")
 
         # Initializing the subscriber for left hand keypoints
-        self.original_keypoint_subscriber = ZMQKeypointSubscriber(
-            host, keypoint_port, "left"
-        )
+        self.original_keypoint_subscriber = ZMQKeypointSubscriber(host, keypoint_port, "left")
         # Initializing the publisher for transformed left hand keypoints
-        self.transformed_keypoint_publisher = ZMQKeypointPublisher(
-            host, transformation_port
-        )
+        self.transformed_keypoint_publisher = ZMQKeypointPublisher(host, transformation_port)
 
         self.timer = FrequencyTimer(VR_FREQ)
 
@@ -55,18 +49,12 @@ class TransformLeftHandPositionCoords(Component):
         palm_normal = normalize_vector(
             np.cross(index_knuckle_coord, pinky_knuckle_coord)
         )  # Current Z
-        palm_direction = normalize_vector(
-            index_knuckle_coord + pinky_knuckle_coord
-        )  # Current Y
-        cross_product = normalize_vector(
-            np.cross(palm_direction, palm_normal)
-        )  # Current X
+        palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)  # Current Y
+        cross_product = normalize_vector(np.cross(palm_direction, palm_normal))  # Current X
         return [cross_product, palm_direction, palm_normal]
 
     # Create a coordinate frame for the arm
-    def _get_hand_dir_frame(
-        self, origin_coord, index_knuckle_coord, pinky_knuckle_coord
-    ):
+    def _get_hand_dir_frame(self, origin_coord, index_knuckle_coord, pinky_knuckle_coord):
         # Calculating the transform in Left Handed system itself as unity being left hand coordinate system. This transform sends the frame in the form of vectors in Left Hand coordinate frame. Since we use only the relative transform between the hand movements the coordinate system does not matter.
         # We find the relative transformation between the hand moving frames and use that to find the transformation in the robot frame and this does not depend on the coordinate system
 
@@ -76,9 +64,7 @@ class TransformLeftHandPositionCoords(Component):
         palm_direction = normalize_vector(
             pinky_knuckle_coord + index_knuckle_coord
         )  # Unity space Z
-        cross_product = normalize_vector(
-            pinky_knuckle_coord - index_knuckle_coord
-        )  # Unity space X
+        cross_product = normalize_vector(pinky_knuckle_coord - index_knuckle_coord)  # Unity space X
 
         return [origin_coord, cross_product, palm_normal, palm_direction]
 
@@ -88,11 +74,9 @@ class TransformLeftHandPositionCoords(Component):
             hand_coords
         )  # Finding hand coords with respect to the wrist
 
-        original_coord_frame = (
-            self._get_coord_frame(  # Finding the original coordinate frame
-                translated_coords[self.knuckle_points[0]],
-                translated_coords[self.knuckle_points[1]],
-            )
+        original_coord_frame = self._get_coord_frame(  # Finding the original coordinate frame
+            translated_coords[self.knuckle_points[0]],
+            translated_coords[self.knuckle_points[1]],
         )
 
         rotation_matrix = np.linalg.solve(
@@ -119,8 +103,8 @@ class TransformLeftHandPositionCoords(Component):
                 data_type, hand_coords = self._get_hand_coords()
 
                 # Find the transformed hand coordinates and the transformed hand local frame
-                transformed_hand_coords, translated_hand_coord_frame = (
-                    self.transform_keypoints(hand_coords)
+                transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(
+                    hand_coords
                 )
 
                 # Passing the transformed coords into a moving average to filter the noise. The higher the moving average limit, the more the noise is filtered. But values higher than 50 might make the keypoint less responsive.

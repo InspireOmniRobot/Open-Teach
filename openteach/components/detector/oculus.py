@@ -32,18 +32,12 @@ class OculusVRHandDetector(Component):
         self.teleop_reset_socket = create_pull_socket(host, teleop_reset_port)
 
         # ZMQ Keypoint publisher
-        self.hand_keypoint_publisher = ZMQKeypointPublisher(
-            host=host, port=keypoint_pub_port
-        )
+        self.hand_keypoint_publisher = ZMQKeypointPublisher(host=host, port=keypoint_pub_port)
 
         # Socket For Resolution Button
-        self.button_socket_publisher = ZMQKeypointPublisher(
-            host=host, port=button_publish_port
-        )
+        self.button_socket_publisher = ZMQKeypointPublisher(host=host, port=button_publish_port)
         # Socket For Teleop Reset
-        self.pause_info_publisher = ZMQKeypointPublisher(
-            host=host, port=teleop_reset_publish_port
-        )
+        self.pause_info_publisher = ZMQKeypointPublisher(host=host, port=teleop_reset_publish_port)
         self.timer = FrequencyTimer(VR_FREQ)
 
     # Function to process the data token received from the VR
@@ -79,9 +73,7 @@ class OculusVRHandDetector(Component):
 
     # Function to Publish the Teleop Reset Status
     def _publish_pause_data(self, pause_status):
-        self.pause_info_publisher.pub_keypoints(
-            keypoint_array=pause_status, topic_name="pause"
-        )
+        self.pause_info_publisher.pub_keypoints(keypoint_array=pause_status, topic_name="pause")
 
     # Function to Stream the Keypoints
     def stream(self):

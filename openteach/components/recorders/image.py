@@ -57,11 +57,7 @@ class RGBImageRecorder(Recorder):
         self.timestamps = []
 
     def stream(self):
-        print(
-            "Starting to record RGB frames from port: {}".format(
-                self._image_stream_port
-            )
-        )
+        print("Starting to record RGB frames from port: {}".format(self._image_stream_port))
 
         self.num_image_frames = 0
         self.record_start_time = time.time()
@@ -123,11 +119,7 @@ class DepthImageRecorder(Recorder):
         if self.image_subscriber.recv_depth_image() is None:
             raise ValueError("Depth image stream is not active.")
 
-        print(
-            "Starting to record depth frames from port: {}".format(
-                self._image_stream_port
-            )
-        )
+        print("Starting to record depth frames from port: {}".format(self._image_stream_port))
 
         self.num_image_frames = 0
         self.record_start_time = time.time()
@@ -208,11 +200,7 @@ class FishEyeImageRecorder(Recorder):
         self.frames = []
 
     def stream(self):
-        print(
-            "Starting to record RGB frames from port: {}".format(
-                self._image_stream_port
-            )
-        )
+        print("Starting to record RGB frames from port: {}".format(self._image_stream_port))
 
         self.num_image_frames = 0
         self.record_start_time = time.time()

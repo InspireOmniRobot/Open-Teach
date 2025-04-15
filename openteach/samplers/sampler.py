@@ -65,9 +65,7 @@ class Sampler(ABC):
             for idx in self.cam_idxs:
                 depth_frame_timestamps.append(
                     self._get_hdf5_timestamps(
-                        hdf5_file_path=os.path.join(
-                            self.data_path, "cam_{}_depth.h5".format(idx)
-                        )
+                        hdf5_file_path=os.path.join(self.data_path, "cam_{}_depth.h5".format(idx))
                     )
                     / 1e3
                 )
@@ -98,9 +96,7 @@ class Sampler(ABC):
         for data_type in self.image_frame_timestamps.keys():
             starting_idxs[data_type] = []
             for timestamp_array in self.image_frame_timestamps[data_type]:
-                starting_idx = self._get_matching_timestamp(
-                    timestamp_array, latest_timestamp
-                )
+                starting_idx = self._get_matching_timestamp(timestamp_array, latest_timestamp)
                 starting_idxs[data_type].append([starting_idx])
 
         return starting_idxs
@@ -133,20 +129,14 @@ class Sampler(ABC):
         for data_type in self.image_frame_timestamps.keys():
             new_image_frame_idxs[data_type] = []
 
-            for cam_idx, timestamp_array in enumerate(
-                self.image_frame_timestamps[data_type]
-            ):
+            for cam_idx, timestamp_array in enumerate(self.image_frame_timestamps[data_type]):
                 latest_used_idx = self._chosen_frame_idxs[data_type][cam_idx][-1]
-                if latest_used_idx + 1 > len(
-                    timestamp_array
-                ):  # If no more image frames left
+                if latest_used_idx + 1 > len(timestamp_array):  # If no more image frames left
                     return False
 
                 clipped_image_timestamp_array = timestamp_array[latest_used_idx + 1 :]
                 if (
-                    self._get_matching_timestamp(
-                        clipped_image_timestamp_array, instance_timestamp
-                    )
+                    self._get_matching_timestamp(clipped_image_timestamp_array, instance_timestamp)
                     is None
                 ):
                     return False
@@ -221,9 +211,7 @@ class Sampler(ABC):
     def get_sampled_depth_frames(self, cam_idx):
         if self.data_type == "depth" or self.data_type == "all":
             depth_data = self._get_hdf5_data(
-                hdf5_path=os.path.join(
-                    self.data_path, "cam_{}_depth.h5".format(cam_idx)
-                ),
+                hdf5_path=os.path.join(self.data_path, "cam_{}_depth.h5".format(cam_idx)),
                 required_data="depth_images",
                 dtype=np.uint16,
             )

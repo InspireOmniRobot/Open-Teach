@@ -23,9 +23,7 @@ class PlotHand3D(Plotter):
     def _set_limits(self):
         self.ax.set_xlim(self.view_limits["x_limits"])
         self.ax.set_ylim(self.view_limits["y_limits"])
-        self.ax.set_zlim3d(
-            self.view_limits["z_limits"][0], self.view_limits["z_limits"][1]
-        )
+        self.ax.set_zlim3d(self.view_limits["z_limits"][0], self.view_limits["z_limits"][1])
 
     def _draw_hand(self, X, Y, Z):
         self.plot3D = self.ax.scatter3D(X, Y, Z)
@@ -80,12 +78,8 @@ class PlotHandDirection(Plotter):
         self.plot3D = self.ax.scatter(X, Y, Z)
 
         # Draw the axes
-        self.ax.plot(
-            [X[0], X[1]], [Y[0], Y[1]], [Z[0], Z[1]], color="blue", label="hand_cross"
-        )
-        self.ax.plot(
-            [X[0], X[2]], [Y[0], Y[2]], [Z[0], Z[2]], color="green", label="hand_normal"
-        )
+        self.ax.plot([X[0], X[1]], [Y[0], Y[1]], [Z[0], Z[1]], color="blue", label="hand_cross")
+        self.ax.plot([X[0], X[2]], [Y[0], Y[2]], [Z[0], Z[2]], color="green", label="hand_normal")
         self.ax.plot(
             [X[0], X[3]],
             [Y[0], Y[3]],

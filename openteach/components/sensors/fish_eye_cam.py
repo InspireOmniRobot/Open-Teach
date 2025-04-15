@@ -84,9 +84,7 @@ class FishEyeCamera(Component):
                 # Publishing the rgb images
                 self.rgb_publisher.pub_rgb_image(color_image, timestamp)
                 if self._stream_oculus:
-                    self.rgb_viz_publisher.send_image(
-                        rescale_image(color_image, 2)
-                    )  # 640 * 360
+                    self.rgb_viz_publisher.send_image(rescale_image(color_image, 2))  # 640 * 360
 
                 self.timer.end_loop()
                 if cv2.waitKey(1) == ord("q"):

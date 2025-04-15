@@ -20,9 +20,7 @@ class OculusThumbBoundCalibrator(object):
         self.transformed_keypoint_subscriber.stop()
 
     def _get_thumb_tip_coord(self):
-        return self.transformed_keypoint_subscriber.recv_keypoints()[
-            OCULUS_JOINTS["thumb"][-1]
-        ]
+        return self.transformed_keypoint_subscriber.recv_keypoints()[OCULUS_JOINTS["thumb"][-1]]
 
     def _get_xy_coords(self):
         return [self._get_thumb_tip_coord()[0], self._get_thumb_tip_coord()[1]]
@@ -103,9 +101,7 @@ class OculusThumbBoundCalibrator(object):
             ]
         )
 
-        thumb_bounds = np.vstack(
-            [thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds]
-        )
+        thumb_bounds = np.vstack([thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds])
 
         handpose_coords = np.array(
             [
@@ -134,9 +130,7 @@ class OculusThumbBoundCalibrator(object):
             )
 
             if use_calibration_file == "y":
-                thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds = (
-                    self._calibrate()
-                )
+                thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds = self._calibrate()
             else:
                 calibrated_bounds = np.load(VR_THUMB_BOUNDS_PATH)
                 thumb_index_bounds = calibrated_bounds[:5]
@@ -145,19 +139,13 @@ class OculusThumbBoundCalibrator(object):
 
         else:
             print("\nNo calibration file found. Need to calibrate hand poses.\n")
-            thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds = (
-                self._calibrate()
-            )
+            thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds = self._calibrate()
         self._stop()
         # return thumb_index_bounds, thumb_middle_bounds, thumb_ring_bounds #NOTE: We're changing this to only return the ring top/botton and right top/bottom
 
         # Return one bound with the max of the zs as the z bound - NOTE: Here, we're getting the largest limits
-        high_z = max(
-            thumb_index_bounds[4][1], thumb_middle_bounds[4][1], thumb_ring_bounds[4][1]
-        )
-        low_z = min(
-            thumb_index_bounds[4][0], thumb_middle_bounds[4][0], thumb_ring_bounds[4][0]
-        )
+        high_z = max(thumb_index_bounds[4][1], thumb_middle_bounds[4][1], thumb_ring_bounds[4][1])
+        low_z = min(thumb_index_bounds[4][0], thumb_middle_bounds[4][0], thumb_ring_bounds[4][0])
 
         # Get the four bounds from index and the ring bounds
         thumb_bounds = [

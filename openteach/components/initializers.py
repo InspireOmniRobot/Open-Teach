@@ -48,9 +48,7 @@ class RealsenseCameras(ProcessInstantiator):
 
     def _init_camera_processes(self):
         for cam_idx in range(len(self.configs.robot_cam_serial_numbers)):
-            self.processes.append(
-                Process(target=self._start_component, args=(cam_idx,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(cam_idx,)))
 
 
 class FishEyeCameras(ProcessInstantiator):
@@ -85,9 +83,7 @@ class FishEyeCameras(ProcessInstantiator):
 
     def _init_camera_processes(self):
         for cam_idx in range(len(self.configs.fisheye_cam_numbers)):
-            self.processes.append(
-                Process(target=self._start_component, args=(cam_idx,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(cam_idx,)))
 
 
 class TeleOperator(ProcessInstantiator):
@@ -130,23 +126,17 @@ class TeleOperator(ProcessInstantiator):
     # Function to start the sim environment
     def _init_sim_environment(self):
         for env_config in self.configs.robot.environment:
-            self.processes.append(
-                Process(target=self._start_component, args=(env_config,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(env_config,)))
 
     # Function to start the keypoint transform
     def _init_keypoint_transform(self):
         for transform_config in self.configs.robot.transforms:
-            self.processes.append(
-                Process(target=self._start_component, args=(transform_config,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(transform_config,)))
 
     # Function to start the visualizers
     def _init_visualizers(self):
         for visualizer_config in self.configs.robot.visualizers:
-            self.processes.append(
-                Process(target=self._start_component, args=(visualizer_config,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(visualizer_config,)))
         # XELA visualizer
         if self.configs.run_xela:
             for visualizer_config in self.configs.xela_visualizers:
@@ -157,9 +147,7 @@ class TeleOperator(ProcessInstantiator):
     # Function to start the operator
     def _init_operator(self):
         for operator_config in self.configs.robot.operators:
-            self.processes.append(
-                Process(target=self._start_component, args=(operator_config,))
-            )
+            self.processes.append(Process(target=self._start_component, args=(operator_config,)))
 
 
 # Data Collector Class
@@ -226,18 +214,14 @@ class Collector(ProcessInstantiator):
         if self.configs.sim_env is not True:
             component = DepthImageRecorder(
                 host=self.configs.host_address,
-                image_stream_port=self.configs.cam_port_offset
-                + cam_idx
-                + DEPTH_PORT_OFFSET,
+                image_stream_port=self.configs.cam_port_offset + cam_idx + DEPTH_PORT_OFFSET,
                 storage_path=self._storage_path,
                 filename="cam_{}_depth".format(cam_idx),
             )
         else:
             component = DepthImageRecorder(
                 host=self.configs.host_address,
-                image_stream_port=self.configs.sim_image_port
-                + cam_idx
-                + DEPTH_PORT_OFFSET,
+                image_stream_port=self.configs.sim_image_port + cam_idx + DEPTH_PORT_OFFSET,
                 storage_path=self._storage_path,
                 filename="cam_{}_depth".format(cam_idx),
             )
@@ -249,22 +233,14 @@ class Collector(ProcessInstantiator):
             print("Camera recorder starting")
             for cam_idx in range(len(self.configs.robot_cam_serial_numbers)):
                 # print(cam_idx)
-                self.processes.append(
-                    Process(target=self._start_rgb_component, args=(cam_idx,))
-                )
+                self.processes.append(Process(target=self._start_rgb_component, args=(cam_idx,)))
 
-                self.processes.append(
-                    Process(target=self._start_depth_component, args=(cam_idx,))
-                )
+                self.processes.append(Process(target=self._start_depth_component, args=(cam_idx,)))
         else:
             for cam_idx in range(self.configs.num_cams):
-                self.processes.append(
-                    Process(target=self._start_rgb_component, args=(cam_idx,))
-                )
+                self.processes.append(Process(target=self._start_rgb_component, args=(cam_idx,)))
 
-                self.processes.append(
-                    Process(target=self._start_depth_component, args=(cam_idx,))
-                )
+                self.processes.append(Process(target=self._start_depth_component, args=(cam_idx,)))
 
     # Function to start the sim recorders
     def _init_sim_recorders(self):

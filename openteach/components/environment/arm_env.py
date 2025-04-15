@@ -27,9 +27,7 @@ class Arm_Env(Component, ABC):
                 self.timestamp_publisher.pub_keypoints(timestamp, "timestamps")
                 # Set this to True to view the sim rendering inside the Oculus.
                 if self._stream_oculus:
-                    self.rgb_viz_publisher.send_image(
-                        rescale_image(color_image, 2)
-                    )  # 640 * 360
+                    self.rgb_viz_publisher.send_image(rescale_image(color_image, 2))  # 640 * 360
 
                 # Publishing the depth images
                 self.depth_publisher.pub_depth_image(depth_image, timestamp)

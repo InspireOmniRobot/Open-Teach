@@ -104,15 +104,11 @@ class Robot:
 
     def set_gripper_position(self, position):
         # self.rm_set_gripper_position(position)
-        raise NotImplementedError(
-            "set_gripper_position() is not yet implemented for Realman RM65"
-        )
+        raise NotImplementedError("set_gripper_position() is not yet implemented for Realman RM65")
 
     def get_gripper_position(self):
         # self.rm_get_gripper_position()
-        raise NotImplementedError(
-            "get_gripper_position() is not yet implemented for Realman RM65"
-        )
+        raise NotImplementedError("get_gripper_position() is not yet implemented for Realman RM65")
 
     def get_current_joint_state(self):
         code, joint_state = self.arm.rm_get_joint_degree()
@@ -130,9 +126,7 @@ class Robot:
 
     def get_current_pose_state(self):
         current_joint_state = self.get_current_joint_state()
-        current_pose = self.algo_handle.rm_algo_forward_kinematics(
-            current_joint_state, flag=1
-        )
+        current_pose = self.algo_handle.rm_algo_forward_kinematics(current_joint_state, flag=1)
         return np.array(current_pose, dtype=np.float32)
 
     def move_arm_cartesian(self, cartesian_pos):
@@ -146,9 +140,7 @@ class Robot:
         if code != 0:
             print(f"Failed to calculate inverse kinematics: {code}, {cartesian_pos}")
         else:
-            print(
-                "Final joint: ", np.round(cartesian_pos, 2), np.array(joint, dtype=int)
-            )
+            print("Final joint: ", np.round(cartesian_pos, 2), np.array(joint, dtype=int))
             # resp = self.send_command({"command": "movej_canfd", "joint": self.scale_angle_up(joint), "follow": False})
             # assert resp["arm_err"] == 0, "Failed to move arm cartesian"
             self.arm.rm_movej_canfd(joint, follow=False)
@@ -189,9 +181,7 @@ class DexArmControl:
         return self.robot.get_current_joint_state()
 
     def get_gripper_state(self):
-        raise NotImplementedError(
-            "get_gripper_state() is not yet implemented for Realman RM65"
-        )
+        raise NotImplementedError("get_gripper_state() is not yet implemented for Realman RM65")
         gripper_position = self.robot.get_gripper_position()
         gripper_pose = dict(
             position=np.array(gripper_position[1], dtype=np.float32).flatten(),

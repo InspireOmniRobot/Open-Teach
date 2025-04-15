@@ -53,9 +53,7 @@ class OculusRightHandDirVisualizer(Component):
         while True:
             try:
                 directions = self._get_directions()
-                self.dir_plotter.draw(
-                    directions[:, 0], directions[:, 1], directions[:, 2]
-                )
+                self.dir_plotter.draw(directions[:, 0], directions[:, 1], directions[:, 2])
             except:
                 break
 

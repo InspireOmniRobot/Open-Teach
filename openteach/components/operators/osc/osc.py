@@ -222,9 +222,7 @@ class OSCController(Controller):
             )
             # Directly set goals
             self.goal_pos = ee_pos + dpose[:, :3]
-            self.goal_ori_mat = quat2mat(
-                quat_mul(axisangle2quat(dpose[:, 3:6]), ee_quat)
-            )
+            self.goal_ori_mat = quat2mat(quat_mul(axisangle2quat(dpose[:, 3:6]), ee_quat))
             self._update_variable_gains(gains=gains, env_ids=env_ids, train=train)
         else:
             # If env_ids is None, we update all the envs
@@ -323,9 +321,7 @@ class OSCController(Controller):
             self.goal_ori_mat = None
             self._clear_variable_gains()
         # Reset corresponding envs to current positions
-        self.update_goal(
-            control_dict=control_dict, command=torch.zeros(n_cmds, 6), env_ids=env_ids
-        )
+        self.update_goal(control_dict=control_dict, command=torch.zeros(n_cmds, 6), env_ids=env_ids)
 
     def get_flattened_goals(self):
         """
@@ -357,12 +353,8 @@ class OSCController(Controller):
         if self.variable_damping_ratio:
             self.damping_ratio = torch.zeros(self.n_envs, 6, device=self.device)
         if self.variable_kp_null:
-            self.kp_null = torch.zeros(
-                self.n_envs, self.control_dim, device=self.device
-            )
-            self.kd_null = torch.zeros(
-                self.n_envs, self.control_dim, device=self.device
-            )
+            self.kp_null = torch.zeros(self.n_envs, self.control_dim, device=self.device)
+            self.kd_null = torch.zeros(self.n_envs, self.control_dim, device=self.device)
 
     def _update_variable_gains(self, gains, env_ids, train=False):
         """
@@ -397,9 +389,7 @@ class OSCController(Controller):
                 idx += 6
             if self.variable_kp_null:
                 self.kp_null[env_ids] = gains[env_ids, idx : idx + self.control_dim]
-                self.kd_null[env_ids] = 2 * torch.sqrt(
-                    self.kp_null
-                )  # critically damped
+                self.kd_null[env_ids] = 2 * torch.sqrt(self.kp_null)  # critically damped
                 idx += self.control_dim
 
     @property
@@ -463,12 +453,8 @@ def _compute_osc_torques(
     m_eef_inv = j_eef @ mm_inv @ torch.transpose(j_eef, 1, 2)
     m_eef = torch.inverse(m_eef_inv)
     if decouple_pos_ori:
-        m_eef_pos_inv = (
-            j_eef[:, :3, :] @ mm_inv @ torch.transpose(j_eef[:, :3, :], 1, 2)
-        )
-        m_eef_ori_inv = (
-            j_eef[:, 3:, :] @ mm_inv @ torch.transpose(j_eef[:, 3:, :], 1, 2)
-        )
+        m_eef_pos_inv = j_eef[:, :3, :] @ mm_inv @ torch.transpose(j_eef[:, :3, :], 1, 2)
+        m_eef_ori_inv = j_eef[:, 3:, :] @ mm_inv @ torch.transpose(j_eef[:, 3:, :], 1, 2)
         m_eef_pos = torch.inverse(m_eef_pos_inv)
         m_eef_ori = torch.inverse(m_eef_ori_inv)
         wrench_pos = m_eef_pos @ err[:, :3, :]
@@ -485,9 +471,7 @@ def _compute_osc_torques(
     # roboticsproceedings.org/rss07/p31.pdf
     if rest_qpos is not None:
         j_eef_inv = m_eef @ j_eef @ mm_inv
-        u_null = kd_null * -qd + kp_null * (
-            (rest_qpos - q + np.pi) % (2 * np.pi) - np.pi
-        )
+        u_null = kd_null * -qd + kp_null * ((rest_qpos - q + np.pi) % (2 * np.pi) - np.pi)
         u_null = mm @ u_null.unsqueeze(-1)
         u += (
             torch.eye(control_dim).unsqueeze(0).to(device)

@@ -8,9 +8,7 @@ from openteach.constants import *
 
 
 class RealsenseCamera(Component):
-    def __init__(
-        self, stream_configs, cam_serial_num, cam_id, cam_configs, stream_oculus=False
-    ):
+    def __init__(self, stream_configs, cam_serial_num, cam_id, cam_configs, stream_oculus=False):
         # Disabling scientific notations
         np.set_printoptions(suppress=True)
         self.cam_id = cam_id
@@ -66,9 +64,7 @@ class RealsenseCamera(Component):
 
         # Setting the depth mode to high accuracy mode
         depth_sensor = device.first_depth_sensor()
-        depth_sensor.set_option(
-            rs.option.visual_preset, self.cam_configs.processing_preset
-        )
+        depth_sensor.set_option(rs.option.visual_preset, self.cam_configs.processing_preset)
         self.realsense = self.pipeline
 
         # Obtaining the color intrinsics matrix for aligning the color and depth images
@@ -132,9 +128,7 @@ class RealsenseCamera(Component):
             self.rgb_publisher.pub_rgb_image(color_image, timestamp)
             # TODO - move the oculus publisher to a separate process - this cycle works at 40 FPS
             if self._stream_oculus:
-                self.rgb_viz_publisher.send_image(
-                    rescale_image(color_image, 2)
-                )  # 640 * 360
+                self.rgb_viz_publisher.send_image(rescale_image(color_image, 2))  # 640 * 360
 
             # Publishing the depth images
             self.depth_publisher.pub_depth_image(depth_image, timestamp)

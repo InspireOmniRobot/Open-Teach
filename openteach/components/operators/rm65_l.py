@@ -82,9 +82,7 @@ class Filter:
         self.comp_ratio = comp_ratio
 
     def __call__(self, next_state):
-        self.pos_state = self.pos_state * self.comp_ratio + next_state[:3] * (
-            1 - self.comp_ratio
-        )
+        self.pos_state = self.pos_state * self.comp_ratio + next_state[:3] * (1 - self.comp_ratio)
         ori_interp = Slerp(
             [0, 1],
             Rotation.from_rotvec(np.stack([self.ori_state, next_state[3:6]], axis=0)),
@@ -119,13 +117,9 @@ class RM65LOperator(Operator):
         # Gripper Publisher
         self.gripper_publisher = ZMQKeypointPublisher(host=host, port=gripper_port)
         # Cartesian Publisher
-        self.cartesian_publisher = ZMQKeypointPublisher(
-            host=host, port=cartesian_publisher_port
-        )
+        self.cartesian_publisher = ZMQKeypointPublisher(host=host, port=cartesian_publisher_port)
         # Joint Publisher
-        self.joint_publisher = ZMQKeypointPublisher(
-            host=host, port=joint_publisher_port
-        )
+        self.joint_publisher = ZMQKeypointPublisher(host=host, port=joint_publisher_port)
         # Cartesian Command Publisher
         self.cartesian_command_publisher = ZMQKeypointPublisher(
             host=host, port=cartesian_command_publisher_port
@@ -206,9 +200,7 @@ class RM65LOperator(Operator):
     def _get_hand_frame(self):
         data = None  # Initialize with a default value
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if data is not None:
                 break
         if data is None:
@@ -218,16 +210,12 @@ class RM65LOperator(Operator):
     # Function to get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
 
     # Function to get the arm teleop state from the hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
-        pause_state, pause_status, pause_left = (
-            self.get_pause_state_from_hand_keypoints()
-        )
+        pause_state, pause_status, pause_left = self.get_pause_state_from_hand_keypoints()
         pause_status = np.asanyarray(pause_status).reshape(1)[0]
 
         return pause_state, pause_status, pause_left
@@ -292,9 +280,7 @@ class RM65LOperator(Operator):
 
     # Function to get gripper state from hand keypoints
     def get_gripper_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self._transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
         distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -317,9 +303,7 @@ class RM65LOperator(Operator):
 
     # Toggle the robot to pause/resume using ring/middle finger pinch, both finger modes are supported to avoid any hand pose noise issue
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self._transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
         ring_distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["ring"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -351,12 +335,9 @@ class RM65LOperator(Operator):
         )
 
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
 

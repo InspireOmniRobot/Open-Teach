@@ -32,14 +32,10 @@ class OculusVRTwoHandDetector(Component):
         self.raw_keypoint_left_socket = create_pull_socket(host, oculus_left_port)
 
         # ZMQ Keypoint publisher
-        self.hand_keypoint_publisher = ZMQKeypointPublisher(
-            host=host, port=keypoint_pub_port
-        )
+        self.hand_keypoint_publisher = ZMQKeypointPublisher(host=host, port=keypoint_pub_port)
 
         # Publisher socket for button feedback
-        self.button_socket_publisher = ZMQKeypointPublisher(
-            host=host, port=button_publish_port
-        )
+        self.button_socket_publisher = ZMQKeypointPublisher(host=host, port=button_publish_port)
         self.timer = FrequencyTimer(VR_FREQ)
 
     # Function to process the data token received from the VR

@@ -12,19 +12,13 @@ from openteach.utils.timer import FrequencyTimer
 
 
 class TransformHandPositionCoords(Component):
-    def __init__(
-        self, host, keypoint_port, transformation_port, moving_average_limit=5
-    ):
+    def __init__(self, host, keypoint_port, transformation_port, moving_average_limit=5):
         self.notify_component_start("keypoint position transform")
 
         # Initializing the subscriber for right hand keypoints
-        self.original_keypoint_subscriber = ZMQKeypointSubscriber(
-            host, keypoint_port, "right"
-        )
+        self.original_keypoint_subscriber = ZMQKeypointSubscriber(host, keypoint_port, "right")
         # Initializing the publisher for transformed right hand keypoints
-        self.transformed_keypoint_publisher = ZMQKeypointPublisher(
-            host, transformation_port
-        )
+        self.transformed_keypoint_publisher = ZMQKeypointPublisher(host, transformation_port)
         # Timer
         self.timer = FrequencyTimer(VR_FREQ)
         # Keypoint indices for knuckles
@@ -55,18 +49,12 @@ class TransformHandPositionCoords(Component):
         palm_normal = normalize_vector(
             np.cross(index_knuckle_coord, pinky_knuckle_coord)
         )  # Current Z
-        palm_direction = normalize_vector(
-            index_knuckle_coord + pinky_knuckle_coord
-        )  # Current Y
-        cross_product = normalize_vector(
-            np.cross(palm_direction, palm_normal)
-        )  # Current X
+        palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)  # Current Y
+        cross_product = normalize_vector(np.cross(palm_direction, palm_normal))  # Current X
         return [cross_product, palm_direction, palm_normal]
 
     # Create a coordinate frame for the arm
-    def _get_hand_dir_frame(
-        self, origin_coord, index_knuckle_coord, pinky_knuckle_coord
-    ):
+    def _get_hand_dir_frame(self, origin_coord, index_knuckle_coord, pinky_knuckle_coord):
         palm_normal = normalize_vector(
             np.cross(index_knuckle_coord, pinky_knuckle_coord)
         )  # Unity space - Y
@@ -104,8 +92,8 @@ class TransformHandPositionCoords(Component):
             data_type, hand_coords = self._get_hand_coords()
 
             # Shift the points to required axes
-            transformed_hand_coords, translated_hand_coord_frame = (
-                self.transform_keypoints(hand_coords)
+            transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(
+                hand_coords
             )
 
             # Passing the transformed coords into a moving average

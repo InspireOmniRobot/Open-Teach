@@ -25,8 +25,7 @@ class VideoStreamer(object):
     def yield_frames(self):
         while True:
             yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + self._get_image() + b"\r\n"
+                b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + self._get_image() + b"\r\n"
             )  # concat frame one by one and show result
 
 

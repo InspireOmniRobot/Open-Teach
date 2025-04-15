@@ -79,9 +79,7 @@ class LiberoSimOperator(Operator):
             host=host, port=endeffpossubscribeport, topic="endeff_coords"
         )
 
-        self.end_eff_position_publisher = ZMQKeypointPublisher(
-            host=host, port=endeff_publish_port
-        )
+        self.end_eff_position_publisher = ZMQKeypointPublisher(host=host, port=endeff_publish_port)
 
         # robot pose subscriber
         self.robot_pose_subscriber = ZMQKeypointSubscriber(
@@ -133,9 +131,7 @@ class LiberoSimOperator(Operator):
     # Get the hand frame
     def _get_hand_frame(self):
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if not data is None:
                 break
         if data is None:
@@ -145,9 +141,7 @@ class LiberoSimOperator(Operator):
     # Get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
 
     # Get Homogenous matrix from the frame
@@ -227,17 +221,13 @@ class LiberoSimOperator(Operator):
 
     # Get ARm Teleop state from Hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
-        pause_state, pause_status, pause_right = (
-            self.get_pause_state_from_hand_keypoints()
-        )
+        pause_state, pause_status, pause_right = self.get_pause_state_from_hand_keypoints()
         pause_status = np.asanyarray(pause_status).reshape(1)[0]
         return pause_state, pause_status, pause_right
 
     # Get Pause State from Hand Keypoints
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self.transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self.transformed_hand_keypoint_subscriber.recv_keypoints()
         ring_distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["ring"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -263,9 +253,7 @@ class LiberoSimOperator(Operator):
 
     # Get Gripper State from Hand Keypoints
     def get_gripper_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self.transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self.transformed_hand_keypoint_subscriber.recv_keypoints()
         pinky_distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -294,20 +282,15 @@ class LiberoSimOperator(Operator):
             self._get_arm_teleop_state_from_hand_keypoints()
         )
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
         self.arm_teleop_state = new_arm_teleop_state
 
         # gripper
-        gripper_state, status_change, gripper_flag = (
-            self.get_gripper_state_from_hand_keypoints()
-        )
+        gripper_state, status_change, gripper_flag = self.get_gripper_state_from_hand_keypoints()
         if self.gripper_cnt == 1 and status_change is True:
             self.gripper_correct_state = gripper_state
             # if status_change is True:
@@ -328,9 +311,7 @@ class LiberoSimOperator(Operator):
         H_HT_HH = copy(self.hand_moving_H)  # Homo matrix that takes P_HT to P_HH
         H_RI_RH = copy(self.robot_init_H)  # Homo matrix that takes P_RI to P_RH
 
-        H_HT_HI = (
-            np.linalg.pinv(H_HI_HH) @ H_HT_HH
-        )  # Homo matrix that takes P_HT to P_HI
+        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
 
         #####################################################################################
         H_R_V = np.array([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
@@ -343,9 +324,7 @@ class LiberoSimOperator(Operator):
 
         target_translation = H_RI_RH[:3, 3] + relative_affine[:3, 3]
         target_rotation = H_RI_RH[:3, :3] @ relative_affine[:3, :3]
-        H_RT_RH = np.block(
-            [[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]]
-        )
+        H_RT_RH = np.block([[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]])
 
         curr_robot_pose = self.robot_moving_H
         translation_scale = 50.0
@@ -371,9 +350,7 @@ class LiberoSimOperator(Operator):
         )
 
         if self.arm_teleop_state == ARM_TELEOP_CONT and gripper_flag == False:
-            self.end_eff_position_publisher.pub_keypoints(
-                averaged_action, "endeff_coords"
-            )
+            self.end_eff_position_publisher.pub_keypoints(averaged_action, "endeff_coords")
         else:
             self.end_eff_position_publisher.pub_keypoints(
                 np.concatenate([np.zeros(6), [gripper_state]]), "endeff_coords"

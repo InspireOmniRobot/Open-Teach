@@ -66,13 +66,9 @@ class TemplateArmOperator(Operator):
         # Gripper Publisher
         self.gripper_publisher = ZMQKeypointPublisher(host=host, port=gripper_port)
         # Cartesian Publisher
-        self.cartesian_publisher = ZMQKeypointPublisher(
-            host=host, port=cartesian_publisher_port
-        )
+        self.cartesian_publisher = ZMQKeypointPublisher(host=host, port=cartesian_publisher_port)
         # Joint Publisher
-        self.joint_publisher = ZMQKeypointPublisher(
-            host=host, port=joint_publisher_port
-        )
+        self.joint_publisher = ZMQKeypointPublisher(host=host, port=joint_publisher_port)
         # Cartesian Command Publisher
         self.cartesian_command_publisher = ZMQKeypointPublisher(
             host=host, port=cartesian_command_publisher_port
@@ -146,9 +142,7 @@ class TemplateArmOperator(Operator):
     def _get_hand_frame(self):
         data = None  # Initialize with a default value
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if data is not None:
                 break
         if data is None:
@@ -158,16 +152,12 @@ class TemplateArmOperator(Operator):
     # Function to get the resolution scale mode
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
 
     # Function to get the arm teleop state from the hand keypoints
     def _get_arm_teleop_state_from_hand_keypoints(self):
-        pause_state, pause_status, pause_right = (
-            self.get_pause_state_from_hand_keypoints()
-        )
+        pause_state, pause_status, pause_right = self.get_pause_state_from_hand_keypoints()
         pause_status = np.asanyarray(pause_status).reshape(1)[0]
 
         return pause_state, pause_status, pause_right
@@ -233,9 +223,7 @@ class TemplateArmOperator(Operator):
 
     # Function to get gripper state from hand keypoints
     def get_gripper_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self._transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
         distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["pinky"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -258,9 +246,7 @@ class TemplateArmOperator(Operator):
 
     # Toggle the robot to pause/resume using ring/middle finger pinch, both finger modes are supported to avoid any hand pose noise issue
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords = (
-            self._transformed_hand_keypoint_subscriber.recv_keypoints()
-        )
+        transformed_hand_coords = self._transformed_hand_keypoint_subscriber.recv_keypoints()
         ring_distance = np.linalg.norm(
             transformed_hand_coords[OCULUS_JOINTS["ring"][-1]]
             - transformed_hand_coords[OCULUS_JOINTS["thumb"][-1]]
@@ -291,12 +277,9 @@ class TemplateArmOperator(Operator):
             self._get_arm_teleop_state_from_hand_keypoints()
         )
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
         self.arm_teleop_state = new_arm_teleop_state
@@ -319,9 +302,7 @@ class TemplateArmOperator(Operator):
         H_HT_HH = copy(self.hand_moving_H)  # Homo matrix that takes P_HT to P_HH
         H_RI_RH = copy(self.robot_init_H)  # Homo matrix that takes P_RI to P_RH
 
-        H_HT_HI = (
-            np.linalg.pinv(H_HI_HH) @ H_HT_HH
-        )  # Homo matrix that takes P_HT to P_HI
+        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
 
         # This matrix will change accordingly on how you want the rotations to be.
         H_R_V = np.array(
@@ -350,9 +331,7 @@ class TemplateArmOperator(Operator):
         target_translation = H_RI_RH[:3, 3] + relative_affine[:3, 3]
 
         target_rotation = H_RI_RH[:3, :3] @ relative_affine[:3, :3]
-        H_RT_RH = np.block(
-            [[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]]
-        )
+        H_RT_RH = np.block([[target_rotation, target_translation.reshape(-1, 1)], [0, 0, 0, 1]])
 
         self.robot_moving_H = copy(H_RT_RH)
         final_pose = self._get_scaled_cart_pose(self.robot_moving_H)
@@ -362,17 +341,13 @@ class TemplateArmOperator(Operator):
         if self.use_filter:
             final_pose = self.comp_filter(final_pose)
 
-        gripper_state, status_change, gripper_flag = (
-            self.get_gripper_state_from_hand_keypoints()
-        )
+        gripper_state, status_change, gripper_flag = self.get_gripper_state_from_hand_keypoints()
         if gripper_flag == 1 and status_change is True:
             self.gripper_correct_state = gripper_state
             self.robot.set_gripper_state(self.gripper_correct_state * 800)
 
         # We save the states here during teleoperation as saving directly at 90Hz seems to be too fast for XArm.
-        self.gripper_publisher.pub_keypoints(
-            self.gripper_correct_state, "gripper_right"
-        )
+        self.gripper_publisher.pub_keypoints(self.gripper_correct_state, "gripper_right")
         position = self.robot.get_cartesian_position()
         joint_position = self.robot.get_joint_position()
         self.cartesian_publisher.pub_keypoints(position, "cartesian")

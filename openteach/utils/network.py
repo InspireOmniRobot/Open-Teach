@@ -117,9 +117,7 @@ class ZMQCameraPublisher(object):
         self.socket.send(b"rgb_image " + pickle.dumps(data, protocol=-1))
 
     def pub_depth_image(self, depth_image, timestamp):
-        compressed_depth = bl.pack_array(
-            depth_image, cname="zstd", clevel=1, shuffle=bl.NOSHUFFLE
-        )
+        compressed_depth = bl.pack_array(depth_image, cname="zstd", clevel=1, shuffle=bl.NOSHUFFLE)
         data = dict(timestamp=timestamp, depth_image=compressed_depth)
         self.socket.send(b"depth_image " + pickle.dumps(data, protocol=-1))
 

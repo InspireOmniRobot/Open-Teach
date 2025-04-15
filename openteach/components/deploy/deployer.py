@@ -64,11 +64,7 @@ class DeployServer(Component):
                     else:
                         print("Moving allegro to given angles")
                         self._robots[robot].move(robot_action_dict[robot])
-                    print(
-                        "Applying action {} on robot: {}".format(
-                            robot_action_dict[robot], robot
-                        )
-                    )
+                    print("Applying action {} on robot: {}".format(robot_action_dict[robot], robot))
             return True
         except:
             print(f"robot: {robot} failed executing in perform_robot_action")

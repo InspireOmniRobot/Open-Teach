@@ -34,9 +34,7 @@ class ImagePolicySubscriber:
         # Getting images from the rostopic
         self.image = None
         # Subscriber for images
-        rospy.Subscriber(
-            IMAGE_SUBSCRIBER_TOPIC, Image_msg, self._callback_image, queue_size=1
-        )
+        rospy.Subscriber(IMAGE_SUBSCRIBER_TOPIC, Image_msg, self._callback_image, queue_size=1)
 
         rospy.Subscriber(
             DEPTH_SUBSCRIBER_TOPIC,

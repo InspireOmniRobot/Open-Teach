@@ -28,17 +28,13 @@ class Hand_Env(Component, ABC):
                 self.timestamp_publisher.pub_keypoints(timestamp, "timestamps")
                 # Set this to True
                 if self._stream_oculus:
-                    self.rgb_viz_publisher.send_image(
-                        rescale_image(color_image, 2)
-                    )  # 640 * 360
+                    self.rgb_viz_publisher.send_image(rescale_image(color_image, 2))  # 640 * 360
 
                 # Publishing the depth images
                 self.depth_publisher.pub_depth_image(depth_image, timestamp)
 
                 current_angles = self.get_dof_position()
-                self.joint_angle_publisher.pub_keypoints(
-                    current_angles, "current_angles"
-                )
+                self.joint_angle_publisher.pub_keypoints(current_angles, "current_angles")
                 # Gets the endeffector position
                 position = self.get_endeff_position()
                 # Publishes the endeffector position so that Operator can use.

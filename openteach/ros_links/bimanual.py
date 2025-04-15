@@ -108,9 +108,7 @@ class DexArmControl:
         return gripper_pose
 
     def move_arm_joint(self, joint_angles):
-        self.robot.set_servo_angle(
-            joint_angles, wait=True, is_radian=True, mvacc=80, speed=10
-        )
+        self.robot.set_servo_angle(joint_angles, wait=True, is_radian=True, mvacc=80, speed=10)
 
     def move_arm_cartesian(self, cartesian_pos, duration=3):
         self.robot.set_servo_cartesian_aa(

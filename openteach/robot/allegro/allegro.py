@@ -66,10 +66,7 @@ class AllegroHand(RobotWrapper):
         for idx in range(ALLEGRO_JOINTS_PER_FINGER - 1):  # ignoring the base
             random_angles[idx + 1] = 0.5 * (
                 thumb_low_limit[idx + 1]
-                + (
-                    np.random.rand()
-                    * (thumb_high_limit[idx + 1] - thumb_low_limit[idx + 1])
-                )
+                + (np.random.rand() * (thumb_high_limit[idx + 1] - thumb_low_limit[idx + 1]))
             )
 
         return random_angles
@@ -84,10 +81,7 @@ class AllegroHand(RobotWrapper):
         for idx in range(ALLEGRO_JOINTS_PER_FINGER - 1):  # ignoring the base
             random_angles[idx + 1] = 0.8 * (
                 finger_low_limit[idx + 1]
-                + (
-                    np.random.rand()
-                    * (finger_high_limit[idx + 1] - finger_low_limit[idx + 1])
-                )
+                + (np.random.rand() * (finger_high_limit[idx + 1] - finger_low_limit[idx + 1]))
             )
 
         random_angles[0] = -0.1 + (np.random.rand() * 0.2)  # Base angle

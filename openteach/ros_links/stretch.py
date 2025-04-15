@@ -83,9 +83,7 @@ class DexArmControl:
         end_of_arm_yaw = self.robot.end_of_arm.status["wrist_yaw"]["pos"]
         end_of_arm_pitch = self.robot.end_of_arm.status["wrist_pitch"]["pos"]
         end_of_arm_roll = self.robot.end_of_arm.status["wrist_roll"]["pos"]
-        r1 = R.from_euler(
-            "zyx", [end_of_arm_roll, end_of_arm_pitch, end_of_arm_yaw], degrees=True
-        )
+        r1 = R.from_euler("zyx", [end_of_arm_roll, end_of_arm_pitch, end_of_arm_yaw], degrees=True)
         return r1
 
     # Full robot commands

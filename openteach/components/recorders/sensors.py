@@ -29,11 +29,7 @@ class XelaSensorRecorder(Recorder):
         while self.sensor.get_sensor_state() is None:
             continue
 
-        print(
-            "Starting to record xela sensor values in {}".format(
-                self._recorder_file_name
-            )
-        )
+        print("Starting to record xela sensor values in {}".format(self._recorder_file_name))
 
         self.num_datapoints = 0
         self.record_start_time = time.time()
@@ -41,9 +37,7 @@ class XelaSensorRecorder(Recorder):
         while True:
             try:
                 self.timer.start_loop()
-                sensor_state = (
-                    self.sensor.get_sensor_state()
-                )  # Has sensor_values and timestamps
+                sensor_state = self.sensor.get_sensor_state()  # Has sensor_values and timestamps
                 for attribute in sensor_state.keys():
                     if attribute not in self.sensor_information.keys():
                         self.sensor_information[attribute] = [sensor_state[attribute]]

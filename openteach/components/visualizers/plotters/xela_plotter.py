@@ -21,9 +21,7 @@ class XelaPlotter(Plotter):
         self.blank_image = np.zeros((240, 240, 3))
         self.imgs = []
         for i in range(4):
-            self.imgs.append(
-                [self.axs[i, j].imshow(self.blank_image.copy()) for j in range(4)]
-            )
+            self.imgs.append([self.axs[i, j].imshow(self.blank_image.copy()) for j in range(4)])
 
         for i in range(4):
             for j in range(4):
@@ -37,9 +35,7 @@ class XelaPlotter(Plotter):
     def _set_circle_coordinates(self):
         self.circle_coords_in_one_circle = []
         for j in range(48, 192 + 1, 48):  # Y
-            for i in range(
-                48, 192 + 1, 48
-            ):  # X - It goes from top left to bottom right row first
+            for i in range(48, 192 + 1, 48):  # X - It goes from top left to bottom right row first
                 self.circle_coords_in_one_circle.append([i, j])
 
     def _draw_one_sensor(self, ax, sensor_values, img=None):
@@ -128,9 +124,7 @@ class XelaCurvedPlotter(Plotter):
     def _set_limits(self):
         pass
 
-    def plot_tactile_sensor(
-        self, ax, sensor_values, use_img=False, img=None, title="Tip Position"
-    ):
+    def plot_tactile_sensor(self, ax, sensor_values, use_img=False, img=None, title="Tip Position"):
         # sensor_values: (16, 3) - 3 values for each tactile - x and y represents the position, z represents the pressure on the tactile point
         img_shape = (240, 240, 3)  # For one sensor
         blank_image = np.ones(img_shape, np.uint8) * 255
@@ -141,16 +135,13 @@ class XelaCurvedPlotter(Plotter):
         # Set the coordinates for each circle
         tactile_coordinates = []
         for j in range(60, 180 + 1, 40):  # Y
-            for i in range(
-                60, 180 + 1, 40
-            ):  # X - It goes from top left to bottom right row first
+            for i in range(60, 180 + 1, 40):  # X - It goes from top left to bottom right row first
                 tactile_coordinates.append([i, j])
 
         # Plot the circles
         for i in range(sensor_values.shape[0]):
             center_coordinates = (
-                tactile_coordinates[i][0]
-                + int(sensor_values[i, 0] / 20),  # NOTE: Change this
+                tactile_coordinates[i][0] + int(sensor_values[i, 0] / 20),  # NOTE: Change this
                 tactile_coordinates[i][1] + int(sensor_values[i, 1] / 20),
             )
             radius = max(10 + int(sensor_values[i, 2] / 10), 2)
@@ -191,9 +182,7 @@ class XelaCurvedPlotter(Plotter):
         for j in range(20, 240, 40):  # y axis
             # x axis is somewhat hard coded
             for i in range(20, 240, 40):
-                if j == 20 and (
-                    i == 100 or i == 140
-                ):  # Only the middle two will be added
+                if j == 20 and (i == 100 or i == 140):  # Only the middle two will be added
                     tactile_coordinates.append([i, j])
                 elif (j > 20 and j < 100) and (i > 20 and i < 220):
                     tactile_coordinates.append([i, j])
@@ -229,9 +218,7 @@ class XelaCurvedPlotter(Plotter):
 
         return img, frame_axis
 
-    def plot_tactile_palm(
-        self, ax, sensor_values, use_img=False, img=None, title="Tip Position"
-    ):
+    def plot_tactile_palm(self, ax, sensor_values, use_img=False, img=None, title="Tip Position"):
         # sensor_values: (16, 3) - 3 values for each tactile - x and y represents the position, z represents the pressure on the tactile point
         img_shape = (480, 960, 3)  # For one sensor
         blank_image = np.ones(img_shape, np.uint8) * 255
@@ -315,9 +302,7 @@ class XelaCurvedPlotter(Plotter):
                     f"palm_sensor_values.shape: {palm_sensor_values.shape}"
                 )
                 # self.palm_sensor_values= palm_sensor_values
-                self.plot_tactile_palm(
-                    self.axs[k], sensor_values=palm_sensor_values, title=k
-                )
+                self.plot_tactile_palm(self.axs[k], sensor_values=palm_sensor_values, title=k)
                 # cnt_palm+=1
             elif not "empty" in k:
                 self.finger_sensor_values = finger_sensor_values

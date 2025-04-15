@@ -89,34 +89,20 @@ class AllegroKDL(object):
 
     def get_fingertip_coords(self, joint_positions):
         index_coords = self.finger_forward_kinematics("index", joint_positions[:4])[0]
-        middle_coords = self.finger_forward_kinematics("middle", joint_positions[4:8])[
-            0
-        ]
+        middle_coords = self.finger_forward_kinematics("middle", joint_positions[4:8])[0]
         ring_coords = self.finger_forward_kinematics("ring", joint_positions[8:12])[0]
-        thumb_coords = self.finger_forward_kinematics("thumb", joint_positions[12:16])[
-            0
-        ]
+        thumb_coords = self.finger_forward_kinematics("thumb", joint_positions[12:16])[0]
 
-        finger_tip_coords = np.hstack(
-            [index_coords, middle_coords, ring_coords, thumb_coords]
-        )
+        finger_tip_coords = np.hstack([index_coords, middle_coords, ring_coords, thumb_coords])
         return np.array(finger_tip_coords)
 
     def get_joint_state_from_coord(
         self, index_tip_coord, middle_tip_coord, ring_tip_coord, thumb_tip_coord, seed
     ):
-        index_joint_angles = self.finger_inverse_kinematics(
-            "index", index_tip_coord, seed[0:4]
-        )
-        middle_joint_angles = self.finger_inverse_kinematics(
-            "middle", middle_tip_coord, seed[4:8]
-        )
-        ring_joint_angles = self.finger_inverse_kinematics(
-            "ring", ring_tip_coord, seed[8:12]
-        )
-        thumb_joint_angles = self.finger_inverse_kinematics(
-            "thumb", thumb_tip_coord, seed[12:16]
-        )
+        index_joint_angles = self.finger_inverse_kinematics("index", index_tip_coord, seed[0:4])
+        middle_joint_angles = self.finger_inverse_kinematics("middle", middle_tip_coord, seed[4:8])
+        ring_joint_angles = self.finger_inverse_kinematics("ring", ring_tip_coord, seed[8:12])
+        thumb_joint_angles = self.finger_inverse_kinematics("thumb", thumb_tip_coord, seed[12:16])
 
         desired_joint_angles = copy(seed)
 

@@ -74,19 +74,13 @@ class AllegroHandEnv(Hand_Env):
             )
 
         # Publisher for Depth data
-        self.depth_publisher = ZMQCameraPublisher(
-            host=host, port=camport + DEPTH_PORT_OFFSET
-        )
+        self.depth_publisher = ZMQCameraPublisher(host=host, port=camport + DEPTH_PORT_OFFSET)
 
         # Publisher for Joint Angle
-        self.joint_angle_publisher = ZMQKeypointPublisher(
-            host=host, port=jointanglepublishport
-        )
+        self.joint_angle_publisher = ZMQKeypointPublisher(host=host, port=jointanglepublishport)
 
         # Publisher for Actual Current Joint Angles
-        self.actualanglepublisher = ZMQKeypointPublisher(
-            host=host, port=actualanglepublishport
-        )
+        self.actualanglepublisher = ZMQKeypointPublisher(host=host, port=actualanglepublishport)
 
         # Publisher for calculated angles from teleoperator.
         self.joint_angle_subscriber = ZMQKeypointSubscriber(
@@ -94,9 +88,7 @@ class AllegroHandEnv(Hand_Env):
         )
 
         # Publisher for endeffector Positions
-        self.endeff_publisher = ZMQKeypointPublisher(
-            host=host, port=endeff_publish_port
-        )
+        self.endeff_publisher = ZMQKeypointPublisher(host=host, port=endeff_publish_port)
 
         # Publisher for endeffector Velocities
         self.endeff_pos_subscriber = ZMQKeypointSubscriber(
@@ -104,9 +96,7 @@ class AllegroHandEnv(Hand_Env):
         )
 
         # Publisher for timestamps
-        self.timestamp_publisher = ZMQKeypointPublisher(
-            host=host, port=timestamppublisherport
-        )
+        self.timestamp_publisher = ZMQKeypointPublisher(host=host, port=timestamppublisherport)
 
         self.physics_engine = gymapi.SIM_PHYSX
         self.gym = gymapi.acquire_gym()
@@ -227,20 +217,14 @@ class AllegroHandEnv(Hand_Env):
         self.num_dofs = self.get_dof_count()
 
         object_position, object_rotation = self.create_env()
-        self.actor_root_state_tensor = self.gym.acquire_actor_root_state_tensor(
-            self.sim
-        )
+        self.actor_root_state_tensor = self.gym.acquire_actor_root_state_tensor(self.sim)
 
         self.root_state_tensor = gymtorch.wrap_tensor(self.actor_root_state_tensor)
 
         # Set Root State Tensors
         self.root_state_tensor = self.root_state_tensor.view(-1, 13)
-        self.object_indices = to_torch(
-            self.object_indices, dtype=torch.int32, device="cpu"
-        )
-        state = self.reset(
-            object_position=object_position, object_rotation=object_rotation
-        )
+        self.object_indices = to_torch(self.object_indices, dtype=torch.int32, device="cpu")
+        state = self.reset(object_position=object_position, object_rotation=object_rotation)
 
     # Function creates the environment
     def create_env(self):
@@ -308,9 +292,7 @@ class AllegroHandEnv(Hand_Env):
             "pinch_grasping": gymapi.Quat(-0.707, -0.707, 0, 0),
         }
 
-        self.env = self.gym.create_env(
-            self.sim, self.env_lower, self.env_upper, self.num_per_row
-        )
+        self.env = self.gym.create_env(self.sim, self.env_lower, self.env_upper, self.num_per_row)
         camera_props = gymapi.CameraProperties()
         camera_props.horizontal_fov = 100
         camera_props.width = 480
@@ -319,9 +301,7 @@ class AllegroHandEnv(Hand_Env):
         self.camera_handle = self.gym.create_camera_sensor(self.env, camera_props)
         camera_pos = camera_position_dict[self.env_suite]
         camera_target = camera_target_dict[self.env_suite]
-        self.gym.set_camera_location(
-            self.camera_handle, self.env, camera_pos, camera_target
-        )
+        self.gym.set_camera_location(self.camera_handle, self.env, camera_pos, camera_target)
         self.camera_handles.append(self.camera_handle)
         self.gym.start_access_image_tensors(self.sim)
         actor_pose = gymapi.Transform()
@@ -335,9 +315,7 @@ class AllegroHandEnv(Hand_Env):
         table_pose.p = gymapi.Vec3(0.7, 0.0, 0.3)
         table_pose.r = gymapi.Quat(-0.707107, 0, 0.0, 0.707)
 
-        self.actor_handle = self.gym.create_actor(
-            self.env, self.asset, actor_pose, "actor", 0, 1
-        )
+        self.actor_handle = self.gym.create_actor(self.env, self.asset, actor_pose, "actor", 0, 1)
         self.table_handle = self.gym.create_actor(
             self.env, self.table_asset, table_pose, "table", 0, 1
         )
@@ -346,15 +324,11 @@ class AllegroHandEnv(Hand_Env):
         )
         self.object_handles.append(object_handle)
         if self.env_suite != "None":
-            object_idx = self.gym.get_actor_index(
-                self.env, object_handle, gymapi.DOMAIN_SIM
-            )
+            object_idx = self.gym.get_actor_index(self.env, object_handle, gymapi.DOMAIN_SIM)
             print("Env suite is not None")
             self.object_indices.append(object_idx)
 
-        actor_idx = self.gym.get_actor_index(
-            self.env, self.actor_handle, gymapi.DOMAIN_SIM
-        )
+        actor_idx = self.gym.get_actor_index(self.env, self.actor_handle, gymapi.DOMAIN_SIM)
         self.actor_indices.append(actor_idx)
         # self.actor_handles.append(actor_handle)
         props = self.gym.get_actor_dof_properties(self.env, self.actor_handle)
@@ -415,9 +389,7 @@ class AllegroHandEnv(Hand_Env):
 
     # Reset the environment
     def reset(self, object_position, object_rotation):
-        home_position = torch.zeros(
-            (1, self.num_dofs), dtype=torch.float32, device="cpu"
-        )
+        home_position = torch.zeros((1, self.num_dofs), dtype=torch.float32, device="cpu")
 
         home_position = torch.tensor(
             [
@@ -527,9 +499,7 @@ class AllegroHandEnv(Hand_Env):
 
     # Set the DOF position
     def set_position(self, position):
-        self.gym.set_dof_position_target_tensor(
-            self.sim, gymtorch.unwrap_tensor(position)
-        )
+        self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(position))
 
     # Get the endeffector position
     def get_endeff_position(self):
@@ -567,9 +537,7 @@ class AllegroHandEnv(Hand_Env):
         self.gym.refresh_rigid_body_state_tensor(self.sim)
         self.gym.simulate(self.sim)
         self.actual_joint_angles = self.get_dof_position()
-        self.actualanglepublisher.pub_keypoints(
-            self.actual_joint_angles, "current_angles"
-        )
+        self.actualanglepublisher.pub_keypoints(self.actual_joint_angles, "current_angles")
         self.gym.fetch_results(self.sim, True)
         self.gym.step_graphics(self.sim)
         self.gym.render_all_camera_sensors(self.sim)

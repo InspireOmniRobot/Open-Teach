@@ -12,9 +12,7 @@ from openteach.constants import *
 class RobotInformationRecord(Recorder):
     def __init__(self, robot_configs, recorder_function_key, storage_path):
         # Data function and attributes
-        self.robot = hydra.utils.instantiate(
-            robot_configs, record_type=recorder_function_key
-        )
+        self.robot = hydra.utils.instantiate(robot_configs, record_type=recorder_function_key)
         self.keypoint_function = self.robot.recorder_functions[recorder_function_key]
 
         # Timer
@@ -33,11 +31,7 @@ class RobotInformationRecord(Recorder):
         print("Checking if the keypoint port is active...")
         while self.keypoint_function() is None:
             continue
-        print(
-            "Starting to record keypoints to store in {}.".format(
-                self._recorder_file_name
-            )
-        )
+        print("Starting to record keypoints to store in {}.".format(self._recorder_file_name))
 
         self.num_datapoints = 0
         self.record_start_time = time.time()

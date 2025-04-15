@@ -25,9 +25,7 @@ def get_distance(start_vector, end_vector):
 
 @njit
 def linear_transform(curr_val, source_bound, target_bound):
-    multiplier = (target_bound[1] - target_bound[0]) / (
-        source_bound[1] - source_bound[0]
-    )
+    multiplier = (target_bound[1] - target_bound[0]) / (source_bound[1] - source_bound[0])
     target_val = ((curr_val - source_bound[0]) * multiplier) + target_bound[0]
     return target_val
 

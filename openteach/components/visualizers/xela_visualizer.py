@@ -32,9 +32,7 @@ class XelaVisualizer(Component):
             ):
                 # Get the xela sensor values
 
-                self.plotter.draw(
-                    palm_sensor_values, fingertip_sensor_values, finger_sensor_values
-                )
+                self.plotter.draw(palm_sensor_values, fingertip_sensor_values, finger_sensor_values)
 
         print("Stopping the XELA visualizer")
 
@@ -57,9 +55,7 @@ class XelaCurvedVisualizer(Component):
                     fingertip_sensor_values = xela_state["fingertip_sensor_values"]
                     finger_sensor_values = xela_state["finger_sensor_values"]
 
-                self.plotter.draw(
-                    palm_sensor_values, fingertip_sensor_values, finger_sensor_values
-                )
+                self.plotter.draw(palm_sensor_values, fingertip_sensor_values, finger_sensor_values)
 
             except:
                 break

@@ -17,9 +17,7 @@ class AllegroSampler(Sampler):
     def _get_robot_data(self):
         print("Obtaining all the timestamps.")
         robot_state_file = os.path.join(self.data_path, "allegro_joint_states.h5")
-        self._allegro_timestamps = self._get_hdf5_timestamps(
-            hdf5_file_path=robot_state_file
-        )
+        self._allegro_timestamps = self._get_hdf5_timestamps(hdf5_file_path=robot_state_file)
 
         self._allegro_states = self._get_hdf5_data(
             hdf5_path=robot_state_file, required_data="joint_angles", dtype=np.float32
@@ -52,9 +50,7 @@ class AllegroSampler(Sampler):
         self.chosen_timestamps = []
         # Sampling the allegro indices based on the minimum action distance
         previous_idx = self._chosen_allegro_idxs[-1]
-        previous_state = self._robot.get_fingertip_coords(
-            self._allegro_states[previous_idx]
-        )
+        previous_state = self._robot.get_fingertip_coords(self._allegro_states[previous_idx])
 
         print("Starting sampling process.")
         for current_idx in tqdm(
@@ -66,9 +62,7 @@ class AllegroSampler(Sampler):
         ):
             # Check if next state is valid
             if current_idx < self._allegro_states.shape[0]:
-                current_state = self._robot.get_fingertip_coords(
-                    self._allegro_states[current_idx]
-                )
+                current_state = self._robot.get_fingertip_coords(self._allegro_states[current_idx])
             else:
                 break
 
@@ -96,9 +90,7 @@ class AllegroSampler(Sampler):
         print("Extracted number of states: {}".format(len(self._chosen_allegro_idxs)))
 
     def kinova_data(self):
-        self._data = self._get_hdf5_data(
-            self.kinova_state_file, "joint_angles", np.float64
-        )
+        self._data = self._get_hdf5_data(self.kinova_state_file, "joint_angles", np.float64)
         self.time_stamps = self._get_hdf5_timestamps(self.kinova_state_file)
         self.positions = []
         for i in range(len(self.chosen_timestamps)):
@@ -131,13 +123,9 @@ class KinovaSampler_old(Sampler):
     def _get_robot_data(self):
         print("Obtaining all the timestamps.")
 
-        self.kinova_state_file = os.path.join(
-            self.data_path, "kinova_cartesian_states.h5"
-        )
+        self.kinova_state_file = os.path.join(self.data_path, "kinova_cartesian_states.h5")
 
-        self._kinova_timestamps = self._get_hdf5_timestamps(
-            hdf5_file_path=self.kinova_state_file
-        )
+        self._kinova_timestamps = self._get_hdf5_timestamps(hdf5_file_path=self.kinova_state_file)
 
         self.kinova_positions = self._get_hdf5_data(
             hdf5_path=self.kinova_state_file,
@@ -156,9 +144,7 @@ class KinovaSampler_old(Sampler):
         )
 
     def kinova_data(self):
-        self._data = self._get_hdf5_data(
-            self.kinova_state_file, "joint_angles", np.float64
-        )
+        self._data = self._get_hdf5_data(self.kinova_state_file, "joint_angles", np.float64)
         self.time_stamps = self._get_hdf5_timestamps(self.kinova_state_file)
         self.positions = []
         for i in range(len(self.chosen_timestamps)):
@@ -191,12 +177,8 @@ class KinovaSampler(Sampler):
     def _get_robot_data(self):
         print("Obtaining all the timestamps.")
 
-        self.kinova_state_file = os.path.join(
-            self.data_path, "kinova_cartesian_states.h5"
-        )
-        self._kinova_timestamps = self._get_hdf5_timestamps(
-            hdf5_file_path=self.kinova_state_file
-        )
+        self.kinova_state_file = os.path.join(self.data_path, "kinova_cartesian_states.h5")
+        self._kinova_timestamps = self._get_hdf5_timestamps(hdf5_file_path=self.kinova_state_file)
 
         self.kinova_positions = self._get_hdf5_data(
             hdf5_path=self.kinova_state_file,
@@ -214,12 +196,8 @@ class KinovaSampler(Sampler):
             [self.kinova_positions, self.kinova_orientations], axis=1
         )
 
-        self.allegro_state_file = os.path.join(
-            self.data_path, "allegro_joint_states.h5"
-        )
-        self._allegro_timestamps = self._get_hdf5_timestamps(
-            hdf5_file_path=self.kinova_state_file
-        )
+        self.allegro_state_file = os.path.join(self.data_path, "allegro_joint_states.h5")
+        self._allegro_timestamps = self._get_hdf5_timestamps(hdf5_file_path=self.kinova_state_file)
 
         self._allegro_states = self._get_hdf5_data(
             hdf5_path=self.allegro_state_file,
@@ -274,9 +252,7 @@ class KinovaSampler(Sampler):
         print("Extracted number of states: {}".format(len(self._chosen_kinova_idxs)))
 
     def kinova_data(self):
-        self._data = self._get_hdf5_data(
-            self.allegro_state_file, "joint_angles", np.float64
-        )
+        self._data = self._get_hdf5_data(self.allegro_state_file, "joint_angles", np.float64)
         self.time_stamps = self._get_hdf5_timestamps(self.allegro_state_file)
         self.positions = []
         for i in range(len(self.chosen_timestamps)):

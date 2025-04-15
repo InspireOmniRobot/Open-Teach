@@ -55,16 +55,12 @@ def test_filter(save_data=False):
                 print("rand_pos: {} - filtered_pos: {}".format(rand_pos, filtered_pos))
 
                 if i == 0:
-                    all_poses = np.expand_dims(
-                        np.stack([rand_pos, filtered_pos], axis=0), 0
-                    )
+                    all_poses = np.expand_dims(np.stack([rand_pos, filtered_pos], axis=0), 0)
                 else:
                     all_poses = np.concatenate(
                         [
                             all_poses,
-                            np.expand_dims(
-                                np.stack([rand_pos, filtered_pos], axis=0), 0
-                            ),
+                            np.expand_dims(np.stack([rand_pos, filtered_pos], axis=0), 0),
                         ],
                         axis=0,
                     )
@@ -148,9 +144,7 @@ class MovingAllegroSimOperator(Operator):
         )
 
         self.human_teleop = human_teleop
-        self.joint_angle_publisher = ZMQKeypointPublisher(
-            host=host, port=jointanglepublishport
-        )
+        self.joint_angle_publisher = ZMQKeypointPublisher(host=host, port=jointanglepublishport)
 
         self.joint_angle_subscriber = ZMQKeypointSubscriber(
             host=host, port=jointanglesubscribeport, topic="current_angles"
@@ -177,9 +171,7 @@ class MovingAllegroSimOperator(Operator):
             host=host, port=endeffpossubscribeport, topic="endeff_coords"
         )
 
-        self.end_eff_position_publisher = ZMQKeypointPublisher(
-            host=host, port=endeff_publish_port
-        )
+        self.end_eff_position_publisher = ZMQKeypointPublisher(host=host, port=endeff_publish_port)
 
         # Adding Allegro Hand Specific things
 
@@ -197,9 +189,7 @@ class MovingAllegroSimOperator(Operator):
         self.stream_configs = stream_configs
 
         # Getting the bounds for the allegro hand
-        allegro_bounds_path = get_path_in_package(
-            "components/operators/configs/allegro.yaml"
-        )
+        allegro_bounds_path = get_path_in_package("components/operators/configs/allegro.yaml")
         self.allegro_bounds = get_yaml_data(allegro_bounds_path)
 
         self._timer = FrequencyTimer(VR_FREQ)
@@ -222,9 +212,7 @@ class MovingAllegroSimOperator(Operator):
             self.comp_filter = CompStateFilter(robot_init_cart, comp_ratio=0.8)
 
         if allow_rotation:
-            self.initial_quat = np.array(
-                [-0.27686286, -0.66575766, -0.63895273, 0.26805457]
-            )
+            self.initial_quat = np.array([-0.27686286, -0.66575766, -0.63895273, 0.26805457])
             self.rotation_axis = np.array([0, 0, 1])
 
         # Getting the bounds to perform linear transformation
@@ -237,9 +225,9 @@ class MovingAllegroSimOperator(Operator):
         self.wrist_bounds = bounds_data["wrist_bounds"]
 
         # Matrices to reorient the end-effector rotation frames
-        self.frame_realignment_matrix = np.array(
-            bounds_data["frame_realignment_matrix"]
-        ).reshape(3, 3)
+        self.frame_realignment_matrix = np.array(bounds_data["frame_realignment_matrix"]).reshape(
+            3, 3
+        )
         self.rotation_realignment_matrix = np.array(
             bounds_data["rotation_alignment_matrix"]
         ).reshape(3, 3)
@@ -282,9 +270,7 @@ class MovingAllegroSimOperator(Operator):
 
     def _get_hand_frame(self):
         for i in range(10):
-            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(
-                flags=zmq.NOBLOCK
-            )
+            data = self.transformed_arm_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if not data is None:
                 break
         # print('data: {}'.format(data))
@@ -294,9 +280,7 @@ class MovingAllegroSimOperator(Operator):
 
     def _get_resolution_scale_mode(self):
         data = self._arm_resolution_subscriber.recv_keypoints()
-        res_scale = np.asanyarray(data).reshape(1)[
-            0
-        ]  # Make sure this data is one dimensional
+        res_scale = np.asanyarray(data).reshape(1)[0]  # Make sure this data is one dimensional
         return res_scale
         # return ARM_LOW_RESOLUTION
 
@@ -313,9 +297,7 @@ class MovingAllegroSimOperator(Operator):
         raw_keypoints = self.transformed_hand_keypoint_subscriber.recv_keypoints()
         return dict(
             index=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["index"]]]),
-            middle=np.vstack(
-                [raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["middle"]]]
-            ),
+            middle=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["middle"]]]),
             ring=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["ring"]]]),
             thumb=np.vstack([raw_keypoints[0], raw_keypoints[OCULUS_JOINTS["thumb"]]]),
         )
@@ -326,9 +308,7 @@ class MovingAllegroSimOperator(Operator):
                 return self.fingertip_solver.thumb_motion_2D(
                     hand_coordinates=thumb_keypoints,
                     xy_hand_bounds=thumb_bounds[:4],
-                    yz_robot_bounds=self.allegro_bounds["thumb_bounds"][idx][
-                        "projective_bounds"
-                    ],
+                    yz_robot_bounds=self.allegro_bounds["thumb_bounds"][idx]["projective_bounds"],
                     robot_x_val=self.allegro_bounds["x_coord"],
                     moving_avg_arr=self.moving_average_queues["thumb"],
                     curr_angles=curr_angles,
@@ -451,10 +431,7 @@ class MovingAllegroSimOperator(Operator):
         cart = None
         hand_keypoints = self._get_finger_coords()
         desired_joint_angles = copy(self.joint_angle_subscriber.recv_keypoints())
-        if (
-            not self.finger_configs["freeze_index"]
-            and not self.finger_configs["no_index"]
-        ):
+        if not self.finger_configs["freeze_index"] and not self.finger_configs["no_index"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="index",
                 finger_joint_coords=hand_keypoints["index"],
@@ -470,10 +447,7 @@ class MovingAllegroSimOperator(Operator):
             pass
 
         # Movement for the middle finger
-        if (
-            not self.finger_configs["freeze_middle"]
-            and not self.finger_configs["no_middle"]
-        ):
+        if not self.finger_configs["freeze_middle"] and not self.finger_configs["no_middle"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="middle",
                 finger_joint_coords=hand_keypoints["middle"],
@@ -489,10 +463,7 @@ class MovingAllegroSimOperator(Operator):
 
         # Movement for the ring finger
         # Calculating the translatory joint angles
-        if (
-            not self.finger_configs["freeze_ring"]
-            and not self.finger_configs["no_ring"]
-        ):
+        if not self.finger_configs["freeze_ring"] and not self.finger_configs["no_ring"]:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type="ring",
                 finger_joint_coords=hand_keypoints["ring"],
@@ -506,10 +477,7 @@ class MovingAllegroSimOperator(Operator):
             pass
 
         # Movement for the thumb finger - we disable 3D motion just for the thumb
-        if (
-            not self.finger_configs["freeze_thumb"]
-            and not self.finger_configs["no_thumb"]
-        ):
+        if not self.finger_configs["freeze_thumb"] and not self.finger_configs["no_thumb"]:
             desired_joint_angles = self.thumb_angle_calculator(
                 hand_keypoints["thumb"][-1], desired_joint_angles
             )  # Passing just the tip coordinates
@@ -525,12 +493,9 @@ class MovingAllegroSimOperator(Operator):
         # See if there is a reset in the teleop
         new_arm_teleop_state = self._get_arm_teleop_state()
         if self.is_first_frame or (
-            self.arm_teleop_state == ARM_TELEOP_STOP
-            and new_arm_teleop_state == ARM_TELEOP_CONT
+            self.arm_teleop_state == ARM_TELEOP_STOP and new_arm_teleop_state == ARM_TELEOP_CONT
         ):
-            moving_hand_frame = (
-                self._reset_teleop()
-            )  # Should get the moving hand frame only once
+            moving_hand_frame = self._reset_teleop()  # Should get the moving hand frame only once
         else:
             moving_hand_frame = self._get_hand_frame()
         self.arm_teleop_state = new_arm_teleop_state
@@ -556,9 +521,7 @@ class MovingAllegroSimOperator(Operator):
         H_R_V = np.array([[0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         H_T_V = np.array([[0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
-        H_HT_HI = (
-            np.linalg.pinv(H_HI_HH) @ H_HT_HH
-        )  # Homo matrix that takes P_HT to P_HI
+        H_HT_HI = np.linalg.pinv(H_HI_HH) @ H_HT_HH  # Homo matrix that takes P_HT to P_HI
         H_HT_HI_r = (np.linalg.pinv(H_R_V) @ H_HT_HI @ H_R_V)[:3, :3]
         H_HT_HI_t = (np.linalg.pinv(H_T_V) @ H_HT_HI @ H_T_V)[:3, 3]
         relative_affine = np.block([[H_HT_HI_r, H_HT_HI_t.reshape(3, 1)], [0, 0, 0, 1]])

@@ -9,8 +9,7 @@ class Recorder(Component):
             record_start_time=self.record_start_time,
             record_end_time=self.record_end_time,
             record_duration=self.record_end_time - self.record_start_time,
-            record_frequency=datapoints
-            / (self.record_end_time - self.record_start_time),
+            record_frequency=datapoints / (self.record_end_time - self.record_start_time),
         )
 
     def _display_statistics(self, datapoints):
